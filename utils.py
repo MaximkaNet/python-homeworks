@@ -27,9 +27,9 @@ def log(func, message: str, user: str):
     if not os.path.exists(log_file):
         with open(log_file, "w") as f:
             f.write("==== LOG FILE ====")
-            f.write(log_text)
+            f.write(f"\n{log_text}")
         print(log_text)
         return
     with open(log_file, "a") as f:
-        f.write(log_text)
+        f.write(f"\n{log_text}")
     print(log_text)
