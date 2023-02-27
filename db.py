@@ -123,7 +123,7 @@ def select_homeworks(limit: int = 30, offset: int = 0):
 
 
 def select_last_homework_by(author: str, date: date, limit: int = 20):
-    sql = "SELECT `homeworks`.`id`,`homeworks`.`date`, `homeworks`.`update`, `teachers`.`name` FROM `homeworks` INNER JOIN `teachers` ON `homeworks`.`author_id`=`teachers`.`id` ORDER BY `homeworks`.`id` DESC WHERE `teachers`.`name` = %s AND `homeworks`.`date` <= %s LIMIT %s"
+    sql = "SELECT `homeworks`.`id`,`homeworks`.`date`, `homeworks`.`update`, `teachers`.`name` FROM `homeworks` INNER JOIN `teachers` ON `homeworks`.`author_id`=`teachers`.`id` WHERE `teachers`.`name` = %s AND `homeworks`.`date` <= %s ORDER BY `homeworks`.`id` DESC LIMIT %s"
     val = (author, date.strftime(DATE_FORMAT), limit)
     return query_select(sql, val)
 
