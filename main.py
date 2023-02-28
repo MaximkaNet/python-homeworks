@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Filter
 from aiogram.utils.callback_data import CallbackData
@@ -29,13 +29,6 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 bot_mode = "user"
 
 
-class Mode(Filter):
-    key = "mode"
-
-    async def check(self, message: types.Message) -> bool:
-        return True if bot_mode == "user" else False
-
-
 class IsPrivate(Filter):
     key = "chat_type"
 
@@ -48,9 +41,6 @@ class IsGroup(Filter):
 
     async def check(self, message: types.Message) -> bool:
         return True if message.chat.type == "group" else False
-# @dp.message_handler(commands=['test'])
-# async def test(message: types.Message):
-#     tests.test_connection()
 
 
 async def on_shutdown(dispatcher: Dispatcher):
@@ -69,7 +59,7 @@ async def start_command(message: types.Message):
     await message.answer(messages.WELLCOME_GROUP, parse_mode=config.PARSE_MODE)
 
 
-@dp.message_handler(IsGroup(), commands=['hadd'])
+@dp.message_handler(IsPrivate(), commands=['hadd'])
 async def help_add_command(message: types.Message):
     await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
 
@@ -186,7 +176,7 @@ async def update_homework(message: types.Message, state: FSMContext) -> int:
         await state.finish()
         return
     elif message.text == "/hadd":
-        await help_add_command(message)
+        await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
         return
     temp_homework = Homework()
     isValid = temp_homework.parse_message(message.text)
@@ -208,7 +198,7 @@ async def update_homework(message: types.Message, state: FSMContext) -> int:
 @dp.message_handler(state=states.Homework.work)
 async def process_work(message: types.Message, state: FSMContext):
     if message.text == "/hadd":
-        await help_add_command(message)
+        await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
         return
     if message.text == "/cancel":
         await message.answer(messages.ACTION_CANCELED)
@@ -286,7 +276,7 @@ async def edit_homework(message: types.Message, state: FSMContext):
         await state.finish()
         return
     elif message.text == "/hadd":
-        await help_add_command(message)
+        await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
         return
     temp_homework = Homework()
     isValid = temp_homework.parse_message(message.text)
@@ -303,10 +293,5 @@ async def edit_homework(message: types.Message, state: FSMContext):
         await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
         await message.answer("You can /cancel edit homework.")
 
-
-@dp.message_handler(IsPrivate(), commands=['teachers'])
-async def show_functions():
-    print("Te")
 if __name__ == "__main__":
-    dp.bind_filter(Mode)
     executor.start_polling(dp, skip_updates=True)
