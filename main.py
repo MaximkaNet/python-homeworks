@@ -46,7 +46,6 @@ class IsGroup(Filter):
 
 
 async def on_shutdown(dispatcher: Dispatcher):
-    await bot.delete_my_commands()
     await dispatcher.storage.close()
     await dispatcher.storage.wait_closed()
 
@@ -68,8 +67,9 @@ async def help_add_command(message: types.Message):
 show_homework_callback = CallbackData("show_homework", "act", "src")
 
 
-@dp.message_handler(IsGroup(), commands=['homework'])
+@dp.message_handler(IsGroup(), commands=['homework'], state="*")
 async def homework_command(message: types.Message):
+    await states.Homework.show.set()
     ikb = InlineKeyboardMarkup()
     ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "group")),
             InlineKeyboardButton("Another", callback_data=show_homework_callback.new("another", "group")))
@@ -80,6 +80,11 @@ async def homework_command(message: types.Message):
 async def homework_panel(message: types.Message):
     await states.Homework.workspace.set()
     await message.answer(messages.HOMEWORK_PANEL_WELLCOME, parse_mode=config.PARSE_MODE)
+
+
+@dp.message_handler(commands=['help'], state=states.Homework.workspace)
+async def cmd_help_homework(message: types.Message):
+    await message.answer(messages.HW_PANEL_COMMANDS, parse_mode=config.PARSE_MODE)
 
 
 @dp.message_handler(commands=['show'], state=states.Homework.workspace)
@@ -102,7 +107,7 @@ async def process_show_homework(callback_query: types.CallbackQuery, callback_da
         await callback_query.message.edit_text(
             wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
         if len(show_list) == 0:
-            wrapper = f"*Homeworks not found.*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
+            wrapper = f"*{messages.HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
             await callback_query.message.edit_text(wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
             await state.finish()
             if callback_data["src"] == "private":
@@ -137,7 +142,7 @@ async def process_show_calendar(callback_query: types.CallbackQuery, callback_da
         await callback_query.message.edit_text(
             wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
         if len(show_list) == 0:
-            wrapper = f"*Homeworks not found.*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
+            wrapper = f"*{messages.HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
             await callback_query.message.edit_text(wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
             return
         # print results
@@ -156,7 +161,7 @@ async def cmd_add_homework(message: types.Message, state: FSMContext):
     if table != None:
         await message.answer(messages.SELECT_TEACHER, reply_markup=table, parse_mode=config.PARSE_MODE)
         return
-    await message.answer("Teachers not found", parse_mode=config.PARSE_MODE)
+    await message.answer(f"{messages.TEACHERS_NOT_FOUND}\nCommands: /help", parse_mode=config.PARSE_MODE)
     await state.finish()
     await states.Homework.workspace.set()
 
@@ -174,7 +179,7 @@ async def process_teacher(callback_query: types.CallbackQuery, callback_data: Ca
             data["homework"] = is_exist
             await states.Homework.edit_question.set()
             await callback_query.message.edit_text(
-                f"{selected_teacher}\n\nHomework already exist.\nDo you want to edit homework?\n*yes / no*", parse_mode=config.PARSE_MODE)
+                f"{selected_teacher}\n\n{messages.HOMEWORK_UPDATE_QUESTION}", parse_mode=config.PARSE_MODE)
             return
         await callback_query.message.edit_text(f"{selected_teacher}\n{messages.ADD_TASK}", parse_mode=config.PARSE_MODE)
         await states.Homework.work.set()
@@ -214,12 +219,12 @@ async def edit_homework(message: types.Message, state: FSMContext) -> int:
             homework.update(temp_homework.tasks)
             utils.log(edit_homework, "Update homework",
                       user=f"{message.from_user.full_name} ({message.from_user.username})")
-            await message.answer("Complete!")
+            await message.answer(messages.HOMEWORK_EDITED)
             await state.finish()
             await states.Homework.workspace.set()
             return
     else:
-        await message.answer("Incorrect answer!")
+        await message.answer(messages.INCORRECT)
         await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
         return
 
@@ -239,13 +244,13 @@ async def process_work(message: types.Message, state: FSMContext):
         isValid = temp_obj.parse_message(message.text)
         if isValid:
             temp_obj.create(data["teacher"])
-            await message.answer("Complete!")
+            await message.answer(messages.HOMEWORK_ADDED)
             utils.log(process_work, "Create homework",
                       user=f"{message.from_user.full_name} ({message.from_user.username})")
             await state.finish()
             await states.Homework.workspace.set()
         else:
-            await message.answer("Incorrect answer!")
+            await message.answer(messages.INCORRECT)
             await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
             await states.Homework.work.set()
 
@@ -256,7 +261,7 @@ showall_callback = CallbackData("all", "action", "author", "date")
 async def cmd_showall_homework(message: types.Message):
     items = homework.convert_to_list(db.select_homeworks())
     if len(items) == 0:
-        await message.answer("Homeworks not found")
+        await message.answer(messages.HOMEWORKS_NOT_FOUND)
         return
     for item in items:
         actions = InlineKeyboardMarkup()
@@ -292,26 +297,31 @@ async def process_homeworks_actions(callback_query: types.CallbackQuery, callbac
         delete_homework = homework.get_by(callback_data["author"], date)
         if not delete_homework:
             utils.debug(process_homeworks_actions, "Obj not found.")
-            await callback_query.message.edit_text("Error: May be object was deleted.")
+            await callback_query.message.delete()
             await state.finish()
             await states.Homework.workspace.set()
             return
         db.delete_homework(date, callback_data["author"])
-        await callback_query.message.edit_text("Deleted.")
+        await callback_query.message.edit_text(messages.HOMEWORK_DELETED)
         await state.finish()
         await states.Homework.workspace.set()
 
 
 @dp.message_handler(IsPrivate(), commands=['close'], state=states.Homework.workspace)
 async def cmd_close_homework(message: types.Message, state: FSMContext):
-    await message.answer("*Homework* managment panel was closed.", parse_mode=config.PARSE_MODE)
+    await message.answer(messages.HOMEWORK_PANEL_BYE, parse_mode=config.PARSE_MODE)
     await state.finish()
 
 
 @dp.message_handler(IsPrivate(), commands=['teacher'])
 async def cmd_teacher(message: types.Message):
     await states.Teacher.workspace.set()
-    await message.answer(messages.WELLCOME_TEACHER_WORKSPACE, parse_mode=config.PARSE_MODE)
+    await message.answer(f"{messages.TEACHER_PANEL_WELLCOME}\n\n{messages.TCH_PANEL_COMMANDS}", parse_mode=config.PARSE_MODE)
+
+
+@dp.message_handler(IsPrivate(), commands=['help'], state=states.Teacher.workspace)
+async def cmd_help_teacher(message: types.Message):
+    await message.answer(messages.TCH_PANEL_COMMANDS)
 
 show_teacher_actions = CallbackData(
     "teacher_show_actions", "act", "name", "work_days")
@@ -344,12 +354,12 @@ async def actions_show(callback_query: types.CallbackQuery, callback_data: Callb
             db.select_teacher_by(callback_data["name"]))
         if not len(delete_teacher):
             utils.debug(actions_show, "Obj not found.")
-            await callback_query.message.edit_text("Error: May be object was deleted.")
+            await callback_query.message.delete()
             await state.finish()
             await states.Teacher.workspace.set()
             return
         db.delete_teacher(callback_data["name"])
-        await callback_query.message.edit_text("Deleted.")
+        await callback_query.message.delete()
 
 
 @dp.callback_query_handler(week_days_callback.filter(), state=states.Teacher.workspace)
@@ -393,7 +403,7 @@ async def process_select_days(callback_query: types.CallbackQuery, callback_data
             async with state.proxy() as data:
                 name = data["name"]
                 db.insert_teacher(name, days)
-                await callback_query.message.answer("Complete!")
+                await callback_query.message.answer(messages.TEACHER_ADDED)
         await state.finish()
         await states.Teacher.workspace.set()
 
@@ -418,12 +428,13 @@ async def change_name(message: types.Message, state: FSMContext):
         db.update_teacher(data["name"], new_name=message.text)
     await state.finish()
     await states.Teacher.workspace.set()
-    await message.answer("Complete!")
+    await message.answer(messages.TEACHER_EDITED)
 
 
 @dp.message_handler(commands=["close"], state=states.Teacher.workspace)
 async def close_teacher_ws(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer("Teacher workspace was closed.")
+    await message.answer(messages.TEACHER_PANEL_BYE, parse_mode=config.PARSE_MODE)
+
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

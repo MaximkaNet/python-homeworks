@@ -1,11 +1,9 @@
 WELLCOME_USER = """
 This is homework managment bot.
 
-/add - Add new homework
-/homework - Show last homework
-/all - Show all homeworks
-
-/hadd - About add function
+Select mode:
+/homework - homework managment panel
+/teacher - teacher managment panel
 """
 WELLCOME_GROUP = """
 This is homework managment bot.
@@ -25,26 +23,16 @@ _Some book2: s.12() s.1 #some text..._
 *Tasks must be written in one line without hyphenation!*
 """
 SELECT_TEACHER = "Select a teacher:"
-WELLCOME_TEACHER_WORKSPACE = """
-Wellcome to teachers *managment panel*.
-
-Commands:
+TCH_PANEL_COMMANDS = """Commands:
 /add - add a new teacher
 /show - all teachers
 /changename - change a teacher name
-/close - exit from managment panel
-"""
-
-HOMEWORK_PANEL_WELLCOME = """
-Wellcome to homeworks *managment panel*.
-
-Commands:
+/close - exit from managment panel"""
+HW_PANEL_COMMANDS = """Commands:
 /add - add a new homework
 /show - show a homework
 /showall - show all homeworks
-/close - exit from managment panel
-"""
-# Add functions
+/close - exit from managment panel"""
 ADD_TASK = """
 Write your homework in this format:
 _<source>: s.<page> (numbers) # something..._
@@ -52,8 +40,18 @@ _<source>: s.<page> (numbers) # something..._
 You can learn more about adding a task with the command /addh
 You can /cancel this action
 """
-ADDING_HOMEWORK_COMPLETED = "Complete. \nYou can see /homework"
-
-HOMEWORKS_NOT_FOUND = "Homeworks is not found."
+TEACHER_PANEL_WELLCOME = "Wellcome to *teacher* managment panel."
+HOMEWORK_PANEL_WELLCOME = "Wellcome to *homework* managment panel."
+TEACHER_PANEL_BYE = "*Homework* managment panel was closed./help"
+HOMEWORK_PANEL_BYE = "*Teacher* managment panel was closed./help"
+HOMEWORK_ADDED = "Complete./help"
+HOMEWORK_EDITED = "Complete./help"
+TEACHER_ADDED = "Complete./help"
+TEACHER_EDITED = "Complete./help"
+HOMEWORKS_NOT_FOUND = "Homeworks is not found./help"
+TEACHERS_NOT_FOUND = "Teachers is not found./help"
+HOMEWORK_UPDATE_QUESTION = "Homework already exist.\nYou want edit it?\n*Yes / No*"
 EDIT_INSTRUCTION = "1.Copy next text.\n2.Paste.\n3.Edit and send."
-ACTION_CANCELED = "Action was canceled."
+ACTION_CANCELED = "Action was canceled./help"
+INCORRECT = "Incorrect answer!"
+HOMEWORK_DELETED = "Deleted."
