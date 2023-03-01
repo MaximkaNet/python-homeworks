@@ -79,7 +79,7 @@ async def homework_command(message: types.Message):
 @dp.message_handler(IsPrivate(), commands=['homework'], state="*")
 async def homework_panel(message: types.Message):
     await states.Homework.workspace.set()
-    await message.answer(messages.HOMEWORK_PANEL_WELLCOME, parse_mode=config.PARSE_MODE)
+    await message.answer(f"{messages.HOMEWORK_PANEL_WELLCOME}\n\n{messages.HW_PANEL_COMMANDS}", parse_mode=config.PARSE_MODE)
 
 
 @dp.message_handler(commands=['help'], state=states.Homework.workspace)
