@@ -23,9 +23,10 @@ def query_insert(sql: str, val: tuple | list[tuple] = None):
         cursor = con.cursor()
         if isinstance(val, tuple):
             cursor.execute(sql, val)
-            con.commit()
-            return cursor.lastrowid
-        cursor.executemany(sql, val)
+        elif isinstance(val, list):
+            cursor.executemany(sql, val)
+        else:
+            cursor.execute(sql, val)
         con.commit()
         return cursor.lastrowid
     except Error as err:
@@ -84,7 +85,7 @@ def select_teacher_id(name: str):
 
 
 def insert_teacher(name: str, work_days: list[int]):
-    sql = f"INSERT INTO `teachers`(`name`) VALUE '{name}'"
+    sql = f"INSERT INTO `teachers`(`name`) VALUES ('{name}')"
     lastrowid = query_insert(sql)
     sql = "INSERT INTO `teachers_work_days`(`teacher_id`, `day`) VALUES (%s, %s)"
     val = [(lastrowid, item) for item in work_days]
