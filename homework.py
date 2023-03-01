@@ -85,6 +85,7 @@ def get_last_by_date(date: date) -> list[Homework]:
         return []
     elif homeworks == 0:
         debug(get_last_by_date, "Homeworks not found.")
+        return []
     # find candidates
     teachers = teacher.convert_to_list(db.select_teachers())
     candidates = []
