@@ -98,13 +98,15 @@ def insert_teacher(name: str, work_days: list[int]):
 
 
 def update_teacher(name: str, work_days: list[int] = [], new_name: str = ""):
-    if new_name != "" and not work_days:
-        sql = f"UPDATE `teachers`(`name`) SET `name` = '{new_name}'"
-        query_update(sql)
+    if new_name != "" and not len(work_days):
+        sql = "UPDATE `teachers` SET `name` = %s WHERE `name` = %s"
+        val = (new_name, name)
+        query_update(sql, val)
         return
     if new_name != "":
-        sql = f"UPDATE `teachers`(`name`) SET `name` = '{new_name}'"
-        query_update(sql)
+        sql = "UPDATE `teachers` SET `name` = %s WHERE `name` = %s"
+        val = (new_name, name)
+        query_update(sql, val)
         name = new_name
     updated_id = select_teacher_id(name)
     sql = f"DELETE FROM `teachers_work_days` WHERE `teacher_id` = {updated_id}"
