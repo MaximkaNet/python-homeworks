@@ -18,6 +18,7 @@ import messages
 import states
 import teacher
 import db
+import json
 
 
 bot = Bot(
@@ -324,9 +325,9 @@ async def cmd_show(message: types.Message):
         act_kb = InlineKeyboardMarkup(row_width=2)
         act_kb.row()
         act_kb.insert(InlineKeyboardButton(
-            "Edit", callback_data=show_teacher_actions.new("EDIT", item.name, item.work_days)))
+            "Edit", callback_data=show_teacher_actions.new("EDIT", item.name, json.dumps(item.work_days))))
         act_kb.insert(InlineKeyboardButton(
-            "Delete", callback_data=show_teacher_actions.new("DELETE", item.name, [])))
+            "Delete", callback_data=show_teacher_actions.new("DELETE", item.name, "[]")))
         await message.answer(item.print(), reply_markup=act_kb, parse_mode=config.PARSE_MODE)
 
 
@@ -336,9 +337,8 @@ async def actions_show(callback_query: types.CallbackQuery, callback_data: Callb
         async with state.proxy() as data:
             data["name"] = callback_data["name"]
         _teacher = callback_data["name"]
-        work_days = callback_data["work_days"]
-        await callback_query.message.answer(f"Selected teacher: {_teacher}")
-        await callback_query.message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays(selected_days=work_days).start())
+        work_days = json.loads(callback_data["work_days"])
+        await callback_query.message.edit_text(f"Selected teacher: {_teacher}\nNow choose working day(s), where the teacher works.\n_Selected days: _" + ", ".join(map(str, utils.convert_week(work_days))), reply_markup=await SelectWeekDays().start(), parse_mode=config.PARSE_MODE)
     elif callback_data["act"] == "DELETE":
         delete_teacher = teacher.convert_to_list(
             db.select_teacher_by(callback_data["name"]))
@@ -346,7 +346,7 @@ async def actions_show(callback_query: types.CallbackQuery, callback_data: Callb
             utils.debug(actions_show, "Obj not found.")
             await callback_query.message.edit_text("Error: May be object was deleted.")
             await state.finish()
-            await states.Homework.workspace.set()
+            await states.Teacher.workspace.set()
             return
         db.delete_teacher(callback_data["name"])
         await callback_query.message.edit_text("Deleted.")
@@ -380,14 +380,14 @@ async def add_teacher(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["name"] = message.text
         await states.Teacher.work_days.set()
-        await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays().start())
+        await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays([]).start())
 
 
 @dp.callback_query_handler(week_days_callback.filter(), state=states.Teacher.work_days)
 async def process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
     selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
-        if days == None:
+        if not len(days):
             await callback_query.message.edit_text(messages.ACTION_CANCELED, parse_mode=config.PARSE_MODE)
         else:
             async with state.proxy() as data:
