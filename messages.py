@@ -29,19 +29,28 @@ WELLCOME_TEACHER_WORKSPACE = """
 Wellcome to teachers *managment panel*.
 
 Commands:
-/show
-/add
+/add - add a new teacher
+/show - all teachers
 /changename - change a teacher name
 /close - exit from managment panel
 """
+
+HOMEWORK_PANEL_WELLCOME = """
+Wellcome to homeworks *managment panel*.
+
+Commands:
+/add - add a new homework
+/show - show a homework
+/showall - show all homeworks
+/close - exit from managment panel
 """
 # Add functions
 ADD_TASK = """
 Write your homework in this format:
-_ < source > : s. < page > (numbers)  # something..._
+_<source>: s.<page> (numbers) # something..._
 
-You can learn more about adding a task with the command / hadd
-You can / cancel this action
+You can learn more about adding a task with the command /addh
+You can /cancel this action
 """
 ADDING_HOMEWORK_COMPLETED = "Complete. \nYou can see /homework"
 
