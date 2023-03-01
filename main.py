@@ -30,17 +30,17 @@ bot_mode = "user"
 
 
 class IsPrivate(Filter):
-    key = "chat_type"
+    key = "chat_type_private"
 
     async def check(self, message: types.Message) -> bool:
         return True if message.chat.type == "private" else False
 
 
 class IsGroup(Filter):
-    key = "chat_type"
+    key = "chat_type_group_or_supergroup"
 
     async def check(self, message: types.Message) -> bool:
-        return True if message.chat.type == "group" else False
+        return True if message.chat.type == "group" or message.chat.type == "supergroup" else False
 
 
 async def on_shutdown(dispatcher: Dispatcher):
@@ -50,12 +50,12 @@ async def on_shutdown(dispatcher: Dispatcher):
 
 
 @dp.message_handler(IsPrivate(), commands=['start', 'help'])
-async def start_command(message: types.Message):
+async def start_command_user(message: types.Message):
     await message.answer(messages.WELLCOME_USER, parse_mode=config.PARSE_MODE)
 
 
 @dp.message_handler(IsGroup(), commands=['start', 'help'])
-async def start_command(message: types.Message):
+async def start_command_group(message: types.Message):
     await message.answer(messages.WELLCOME_GROUP, parse_mode=config.PARSE_MODE)
 
 
