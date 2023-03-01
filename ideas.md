@@ -12,3 +12,4 @@
 
 # Пагинация в хендлере all
 # Сохранение ссылки на фотографии
+# Fix filters for commands start, help
