@@ -25,7 +25,7 @@ class Teacher:
         return True if number in self.work_days else False
 
 
-choice_teacher = CallbackData("teacher", "name")
+choice_teacher_callback = CallbackData("teacher", "name")
 
 
 def gen_table():
@@ -41,7 +41,7 @@ def gen_table():
             table.add(*row)
             row = []
         button = InlineKeyboardButton(
-            f"{item.name}", callback_data=choice_teacher.new(item.name))
+            f"{item.name}", callback_data=choice_teacher_callback.new(item.name))
         row.append(button)
     if len(row) != 0:
         table.add(*row)

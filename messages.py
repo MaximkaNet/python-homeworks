@@ -26,6 +26,16 @@ _Some book2: s.12() s.1 #some text..._
 """
 SELECT_TEACHER = "Select a teacher:"
 
+HOMEWORK_PANEL_WELLCOME = """
+Wellcome to *homework* managment panel
+
+Commands:
+/add - add new homework
+/show - show the homework
+/showall - show all homeworks
+/addh - add instruction
+/close - Exit from panel
+"""
 # Add functions
 ADD_TASK = """
 Write your homework in this format:

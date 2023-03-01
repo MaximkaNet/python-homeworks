@@ -59,50 +59,72 @@ async def start_command_group(message: types.Message):
     await message.answer(messages.WELLCOME_GROUP, parse_mode=config.PARSE_MODE)
 
 
-@dp.message_handler(IsPrivate(), commands=['hadd'])
+@dp.message_handler(IsPrivate(), commands=['addh'], state="*")
 async def help_add_command(message: types.Message):
     await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
 
+show_homework_callback = CallbackData("show_homework_1", "act", "src")
 
-@dp.message_handler(commands=['homework'])
+
+@dp.message_handler(IsGroup(), commands=['homework'])
 async def homework_command(message: types.Message):
-    await states.ShowHomework.select.set()
     ikb = InlineKeyboardMarkup()
-    ikb.add(InlineKeyboardButton("Tomorrow", callback_data="tomorrow"),
-            InlineKeyboardButton("Another", callback_data="another"))
+    ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "group")),
+            InlineKeyboardButton("Another", callback_data=show_homework_callback.new("another", "group")))
     await message.reply("Select a date:", reply_markup=ikb, parse_mode=config.PARSE_MODE)
 
 
-@dp.callback_query_handler(state=states.ShowHomework.select)
-async def process_show_homework(callback: types.CallbackQuery, state: FSMContext):
-    if callback.data == "tomorrow":
+@dp.message_handler(IsPrivate(), commands=['homework'])
+async def homework_panel(message: types.Message):
+    await states.Homework.workspace.set()
+    await message.answer(messages.HOMEWORK_PANEL_WELLCOME)
+
+
+@dp.message_handler(commands=['show'], state=states.Homework.workspace)
+async def cmd_show_homework(message: types.Message):
+    await states.Homework.show.set()
+    ikb = InlineKeyboardMarkup()
+    ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "private")),
+            InlineKeyboardButton("Another", callback_data=show_homework_callback.new("another", "private")))
+    await message.reply("Select a date:", reply_markup=ikb, parse_mode=config.PARSE_MODE)
+
+
+@dp.callback_query_handler(show_homework_callback.filter(), state=states.Homework.show)
+async def process_show_homework(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    if callback_data["act"] == "tomorrow":
         selected_date: date = date.today() + timedelta(days=1)
         # find homeworks
         show_list: list[Homework] = homework.get_last_by_date(selected_date)
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
-        await callback.message.edit_text(
+        await callback_query.message.edit_text(
             wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
         if len(show_list) == 0:
             wrapper = f"*Homeworks not found.*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
-            await callback.message.edit_text(wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
+            await callback_query.message.edit_text(wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
             await state.finish()
+            if callback_data["src"] == "private":
+                await states.Homework.workspace.set()
             return
         # print results
         wrapper = f"{show_list[0].print()}\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
-        await callback.message.edit_text(wrapper,
-                                         reply_markup=None, parse_mode=config.PARSE_MODE)
+        await callback_query.message.edit_text(wrapper,
+                                               reply_markup=None, parse_mode=config.PARSE_MODE)
         for show_item in range(1, len(show_list)):
             wrapper = f"{show_item.print()}\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
-            await callback.message.answer(wrapper, parse_mode=config.PARSE_MODE)
+            await callback_query.message.answer(wrapper, parse_mode=config.PARSE_MODE)
         await state.finish()
-    elif callback.data == "another":
-        await callback.message.edit_reply_markup(await DialogCalendar().start_calendar())
+        if callback_data["src"] == "private":
+            await states.Homework.workspace.set()
+    elif callback_data["act"] == "another":
+        await callback_query.message.edit_reply_markup(await DialogCalendar().start_calendar())
         await state.finish()
+        if callback_data["src"] == "private":
+            await states.Homework.workspace.set()
 
 
-@dp.callback_query_handler(dialog_cal_callback.filter())
-async def process_show_calendar(callback_query: types.CallbackQuery, callback_data: dict):
+@dp.callback_query_handler(dialog_cal_callback.filter(), state="*")
+async def process_show_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData):
     _selected, _date = await DialogCalendar().process_selection(callback_query, callback_data)
     if _selected:
         selected_date: date = _date.date()
@@ -125,18 +147,20 @@ async def process_show_calendar(callback_query: types.CallbackQuery, callback_da
             await callback_query.message.answer(wrapper, parse_mode=config.PARSE_MODE)
 
 
-@dp.message_handler(IsPrivate(), commands=['add'])
-async def add_command(message: types.Message):
+@dp.message_handler(commands=['add'], state=states.Homework.workspace)
+async def cmd_add_homework(message: types.Message, state: FSMContext):
     await states.Homework.teacher.set()
     table = teacher.gen_table()
     if table != None:
         await message.answer(messages.SELECT_TEACHER, reply_markup=table, parse_mode=config.PARSE_MODE)
         return
     await message.answer("Teachers not found", parse_mode=config.PARSE_MODE)
+    await state.finish()
+    await states.Homework.workspace.set()
 
 
-@dp.callback_query_handler(teacher.choice_teacher.filter(), state=states.Homework.teacher)
-async def process_teacher(callback_query: types.CallbackQuery, callback_data: dict, state: FSMContext):
+@dp.callback_query_handler(teacher.choice_teacher_callback.filter(), state=states.Homework.teacher)
+async def process_teacher(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
     async with state.proxy() as data:
         data["teacher"] = callback_data["name"]
         data["add_date"] = date.today()
@@ -167,13 +191,15 @@ async def edit_question_homework(message: types.Message, state: FSMContext):
     else:
         await message.answer(messages.ACTION_CANCELED)
         await state.finish()
+        await states.Homework.workspace.set()
 
 
 @dp.message_handler(state=states.Homework.edit)
-async def update_homework(message: types.Message, state: FSMContext) -> int:
+async def edit_homework(message: types.Message, state: FSMContext) -> int:
     if message.text == "/cancel":
         await message.answer(messages.ACTION_CANCELED)
         await state.finish()
+        await states.Homework.workspace.set()
         return
     elif message.text == "/hadd":
         await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
@@ -184,10 +210,11 @@ async def update_homework(message: types.Message, state: FSMContext) -> int:
         async with state.proxy() as data:
             homework: Homework = data["homework"]
             homework.update(temp_homework.tasks)
-            utils.log(update_homework, "Update homework",
+            utils.log(edit_homework, "Update homework",
                       user=f"{message.from_user.full_name} ({message.from_user.username})")
             await message.answer("Complete!")
             await state.finish()
+            await states.Homework.workspace.set()
             return
     else:
         await message.answer("Incorrect answer!")
@@ -203,6 +230,7 @@ async def process_work(message: types.Message, state: FSMContext):
     if message.text == "/cancel":
         await message.answer(messages.ACTION_CANCELED)
         await state.finish()
+        await states.Homework.workspace.set()
         return
     async with state.proxy()as data:
         temp_obj = Homework()
@@ -213,26 +241,27 @@ async def process_work(message: types.Message, state: FSMContext):
             utils.log(process_work, "Create homework",
                       user=f"{message.from_user.full_name} ({message.from_user.username})")
             await state.finish()
+            await states.Homework.workspace.set()
         else:
             await message.answer("Incorrect answer!")
             await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
             await states.Homework.work.set()
 
-all_actions = CallbackData("all", "action", "author", "date")
+showall_callback = CallbackData("all", "action", "author", "date")
 
 
-@dp.message_handler(IsPrivate(), commands=['all'])
-async def all_command(message: types.Message):
+@dp.message_handler(IsPrivate(), commands=['showall'], state=states.Homework.workspace)
+async def cmd_showall_homework(message: types.Message):
     items = homework.convert_to_list(db.select_homeworks())
     if len(items) == 0:
         await message.answer("Homeworks not found")
         return
     for item in items:
         actions = InlineKeyboardMarkup()
-        callback_edit = all_actions.new(
-            "edit", f"{item.author}", f"{item.date.strftime(config.DATE_FORMAT)}")
-        callback_delete = all_actions.new(
-            "delete", f"{item.author}", f"{item.date.strftime(config.DATE_FORMAT)}")
+        callback_edit = showall_callback.new(
+            "EDIT", f"{item.author}", f"{item.date.strftime(config.DATE_FORMAT)}")
+        callback_delete = showall_callback.new(
+            "DELETE", f"{item.author}", f"{item.date.strftime(config.DATE_FORMAT)}")
         edit = InlineKeyboardButton(
             "Edit", callback_data=callback_edit)
         delete = InlineKeyboardButton(
@@ -241,57 +270,40 @@ async def all_command(message: types.Message):
         await message.answer(item.print(), reply_markup=actions, parse_mode=config.PARSE_MODE)
 
 
-@dp.callback_query_handler(all_actions.filter())
-async def homeworks_actions(callback: types.CallbackQuery, callback_data, state: FSMContext):
-    if (callback_data["action"] == "edit"):
-        date = datetime.strptime(
-            callback_data["date"], config.DATE_FORMAT).date()
-        edit_homework = homework.get_by(callback_data["author"], date)
-        if edit_homework:
-            async with state.proxy() as data:
-                data["edit_obj"] = edit_homework
-                data["teacher"] = callback_data["author"]
-                await callback.message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
-                await callback.message.answer("You edit homework:")
-                await callback.message.answer(edit_homework.convert_tasks(), parse_mode=config.PARSE_MODE)
-                await states.Print.edit.set()
+@dp.callback_query_handler(showall_callback.filter(), state=states.Homework.workspace)
+async def process_homeworks_actions(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    if (callback_data["action"] == "EDIT"):
+        async with state.proxy() as data:
+            date = datetime.strptime(
+                callback_data["date"], config.DATE_FORMAT).date()
+            _homework: Homework = homework.get_by(
+                callback_data["author"], date)
+            data["homework"] = _homework
+            selected_teacher = f"{messages.SELECT_TEACHER} _{callback_data['author']}_"
+            if _homework:
+                await callback_query.message.answer(f"{selected_teacher}\n{messages.ADD_TASK}", parse_mode=config.PARSE_MODE)
+                await callback_query.message.answer(_homework.convert_tasks())
+                await states.Homework.edit.set()
     else:
         date = datetime.strptime(
             callback_data["date"], config.DATE_FORMAT).date()
         delete_homework = homework.get_by(callback_data["author"], date)
         if not delete_homework:
-            utils.debug(homeworks_actions, "Obj not found.")
-            await callback.message.edit_text("Error: May be object was deleted.")
+            utils.debug(process_homeworks_actions, "Obj not found.")
+            await callback_query.message.edit_text("Error: May be object was deleted.")
             await state.finish()
+            await states.Homework.workspace.set()
             return
         db.delete_homework(date, callback_data["author"])
-        await callback.message.edit_text("Deleted.")
+        await callback_query.message.edit_text("Deleted.")
         await state.finish()
+        await states.Homework.workspace.set()
 
 
-@dp.message_handler(state=states.Print.edit)
-async def edit_homework(message: types.Message, state: FSMContext):
-    if message.text == "/cancel":
-        await message.answer(messages.ACTION_CANCELED)
-        await state.finish()
-        return
-    elif message.text == "/hadd":
-        await message.answer(messages.HELP_ADD, parse_mode=config.PARSE_MODE)
-        return
-    temp_homework = Homework()
-    isValid = temp_homework.parse_message(message.text)
-    if isValid:
-        async with state.proxy() as data:
-            homework: Homework = data["edit_obj"]
-            homework.update(temp_homework.tasks)
-        await message.answer("Complete!")
-        utils.log(edit_homework, "Update homework",
-                  user=f"{message.from_user.full_name} ({message.from_user.username})")
-        await state.finish()
-    else:
-        await message.answer("Incorrect answer!")
-        await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
-        await message.answer("You can /cancel edit homework.")
+@dp.message_handler(IsPrivate(), commands=['close'], state=states.Homework.workspace)
+async def cmd_close_homework(message: types.Message, state: FSMContext):
+    await message.answer("*Homework* managment panel was closed.", parse_mode=config.PARSE_MODE)
+    await state.finish()
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
