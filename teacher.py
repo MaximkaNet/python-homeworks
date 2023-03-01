@@ -39,7 +39,7 @@ def gen_table():
     if len(items) == 0:
         utils.debug(gen_table, "Items not found")
         return None
-    count_cols = math.floor(math.sqrt(len(items)))
+    count_cols = round(math.sqrt(len(items)))
     table = InlineKeyboardMarkup()
     row = []
     for i, item in enumerate(items):
