@@ -79,6 +79,11 @@ def select_teachers():
     return query_select(sql)
 
 
+def select_teacher_by(name: str):
+    sql = f"SELECT `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` WHERE `teachers`.`name` = '{name}'"
+    return query_select(sql)
+
+
 def select_teacher_id(name: str):
     sql = f"SELECT `id` FROM `teachers` WHERE `name` = '{name}'"
     return query_select(sql)[0][0]
