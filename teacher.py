@@ -24,6 +24,12 @@ class Teacher:
     def has_work_day(self, number: int) -> bool:
         return True if number in self.work_days else False
 
+    def print(self):
+        converted_week = utils.convert_week(self.work_days)
+        message = f"Teacher *{self.name}* work in "
+        message += ", ".join(map(str, converted_week))
+        return message
+
 
 choice_teacher = CallbackData("teacher", "name")
 

@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from homework import Homework
 from datetime import datetime
 from aiogram_calendar import dialog_cal_callback, DialogCalendar
+from helpers import week_days_callback, SelectWeekDays
 
 import config
 import utils
@@ -293,5 +294,116 @@ async def edit_homework(message: types.Message, state: FSMContext):
         await message.answer(messages.ADD_TASK, parse_mode=config.PARSE_MODE)
         await message.answer("You can /cancel edit homework.")
 
+
+@dp.message_handler(IsPrivate(), commands=['teacher'])
+async def cmd_teacher(message: types.Message):
+    await states.Teacher.workspace.set()
+    await message.answer(messages.WELLCOME_TEACHER_WORKSPACE, parse_mode=config.PARSE_MODE)
+
+show_teacher_actions = CallbackData(
+    "teacher_show_actions", "act", "name", "work_days")
+
+
+@dp.message_handler(commands=["show"], state=states.Teacher.workspace)
+async def cmd_show(message: types.Message):
+    teachers = teacher.convert_to_list(db.select_teachers())
+
+    for item in teachers:
+        act_kb = InlineKeyboardMarkup(row_width=2)
+        act_kb.row()
+        act_kb.insert(InlineKeyboardButton(
+            "Edit", callback_data=show_teacher_actions.new("EDIT", item.name, item.work_days)))
+        act_kb.insert(InlineKeyboardButton(
+            "Delete", callback_data=show_teacher_actions.new("DELETE", item.name, [])))
+        await message.answer(item.print(), reply_markup=act_kb, parse_mode=config.PARSE_MODE)
+
+
+@dp.callback_query_handler(show_teacher_actions.filter(), state=states.Teacher.workspace)
+async def actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    if callback_data["act"] == "EDIT":
+        async with state.proxy() as data:
+            data["name"] = callback_data["name"]
+        teacher = callback_data["name"]
+        work_days = callback_data["work_days"]
+        await callback_query.message.answer(f"Selected teacher: {teacher}")
+        await callback_query.message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays(selected_days=work_days).start())
+    elif callback_data["act"] == "DELETE":
+        db.delete_teacher(callback_data["name"])
+        await callback_query.message.edit_text("Deleted.")
+
+
+@dp.callback_query_handler(week_days_callback.filter(), state=states.Teacher.workspace)
+async def actions_edit(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
+    if selected:
+        async with state.proxy() as data:
+            db.update_teacher(data["name"], days)
+        act_kb = InlineKeyboardMarkup(row_width=2)
+        act_kb.row()
+        act_kb.insert(InlineKeyboardButton(
+            "Edit", callback_data=show_teacher_actions.new("EDIT", data["name"], days)))
+        act_kb.insert(InlineKeyboardButton(
+            "Delete", callback_data=show_teacher_actions.new("DELETE", data["name"], [])))
+        _teacher = teacher.convert_to_list(db.select_teacher_by(data["name"]))
+        if len(_teacher):
+            await callback_query.message.edit_text(_teacher[0].print(), reply_markup=act_kb, parse_mode=config.PARSE_MODE)
+
+
+@dp.message_handler(commands=['add'], state=states.Teacher.workspace)
+async def cmd_add(message: types.Message):
+    await message.answer("Type the teacher name:")
+    await states.Teacher.name.set()
+
+
+@dp.message_handler(state=states.Teacher.name)
+async def add_teacher(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data["name"] = message.text
+        await states.Teacher.work_days.set()
+        await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays().start())
+
+
+@dp.callback_query_handler(week_days_callback.filter(), state=states.Teacher.work_days)
+async def process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
+    if selected:
+        if days == None:
+            await callback_query.message.edit_text(messages.ACTION_CANCELED, parse_mode=config.PARSE_MODE)
+        else:
+            async with state.proxy() as data:
+                name = data["name"]
+                db.insert_teacher(name, days)
+                await callback_query.message.answer("Complete!")
+        await state.finish()
+        await states.Teacher.workspace.set()
+
+
+@dp.message_handler(commands=['changename'], state=states.Teacher.workspace)
+async def cmd_change_name(message: types.Message):
+    await message.answer("Select a teacher:", reply_markup=teacher.gen_table())
+
+
+@dp.callback_query_handler(teacher.choice_teacher.filter(), state=states.Teacher.workspace)
+async def process_change_name(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    teacher_name = callback_data["name"]
+    await callback_query.message.edit_text(f"Selected teacher: *{teacher_name}*\nType new name.", parse_mode=config.PARSE_MODE)
+    async with state.proxy() as data:
+        data["name"] = callback_data["name"]
+    await states.Teacher.change_name.set()
+
+
+@dp.message_handler(state=states.Teacher.change_name)
+async def change_name(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        db.update_teacher(data["name"], new_name=message.text)
+    await state.finish()
+    await states.Teacher.workspace.set()
+    await message.answer("Complete!")
+
+
+@dp.message_handler(commands=["close"], state=states.Teacher.workspace)
+async def close_teacher_ws(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Teacher workspace was closed.")
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

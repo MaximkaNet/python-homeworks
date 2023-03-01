@@ -25,7 +25,15 @@ _Some book2: s.12() s.1 #some text..._
 *Tasks must be written in one line without hyphenation!*
 """
 SELECT_TEACHER = "Select a teacher:"
+WELLCOME_TEACHER_WORKSPACE = """
+Wellcome to teachers *managment panel*.
 
+Commands:
+/show
+/add
+/changename - change a teacher name
+/close - exit from managment panel
+"""
 # Add functions
 ADD_TASK = """
 Write your homework in this format:
