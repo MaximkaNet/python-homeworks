@@ -31,7 +31,7 @@ TCH_PANEL_COMMANDS = """Commands:
 HW_PANEL_COMMANDS = """Commands:
 /add - add a new homework
 /show - show a homework
-/showall - show all homeworks
+/showlast - show homeworks. You can write the command /showlast<count>
 /close - exit from managment panel"""
 ADD_TASK = """
 Write your homework in this format:
@@ -42,16 +42,16 @@ You can /cancel this action
 """
 TEACHER_PANEL_WELLCOME = "Wellcome to *teacher* managment panel."
 HOMEWORK_PANEL_WELLCOME = "Wellcome to *homework* managment panel."
-HOMEWORK_PANEL_BYE = "*Homework* managment panel was closed./help"
-TEACHER_PANEL_BYE = "*Teacher* managment panel was closed./help"
-HOMEWORK_ADDED = "Complete./help"
-HOMEWORK_EDITED = "Complete./help"
-TEACHER_ADDED = "Complete./help"
-TEACHER_EDITED = "Complete./help"
-HOMEWORKS_NOT_FOUND = "Homeworks is not found./help"
-TEACHERS_NOT_FOUND = "Teachers is not found./help"
+HOMEWORK_PANEL_BYE = "*Homework* managment panel was closed. /help"
+TEACHER_PANEL_BYE = "*Teacher* managment panel was closed. /help"
+HOMEWORK_ADDED = "Complete. /help"
+HOMEWORK_EDITED = "Complete. /help"
+TEACHER_ADDED = "Complete. /help"
+TEACHER_EDITED = "Complete. /help"
+HOMEWORKS_NOT_FOUND = "Homeworks is not found. /help"
+TEACHERS_NOT_FOUND = "Teachers is not found. /help"
 HOMEWORK_UPDATE_QUESTION = "Homework already exist.\nYou want edit it?\n*Yes / No*"
 EDIT_INSTRUCTION = "1.Copy next text.\n2.Paste.\n3.Edit and send."
-ACTION_CANCELED = "Action was canceled./help"
+ACTION_CANCELED = "Action was canceled. /help"
 INCORRECT = "Incorrect answer!"
 HOMEWORK_DELETED = "Deleted."
