@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher import FSMContext, filters
 from aiogram.dispatcher.filters import Filter
 from aiogram.utils.callback_data import CallbackData
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -257,13 +257,28 @@ async def process_work(message: types.Message, state: FSMContext):
 showall_callback = CallbackData("all", "action", "author", "date")
 
 
-@dp.message_handler(IsPrivate(), commands=['showall'], state=states.Homework.workspace)
-async def cmd_showall_homework(message: types.Message):
-    items = homework.convert_to_list(db.select_homeworks())
-    if len(items) == 0:
-        await message.answer(messages.HOMEWORKS_NOT_FOUND)
+@dp.message_handler(IsPrivate(), filters.RegexpCommandsFilter(regexp_commands=['showlast([0-9]*)']), state=states.Homework.workspace)
+async def homework_show_last(message: types.Message, regexp_command, state: FSMContext):
+    count_hw = int(regexp_command.group(1)) if regexp_command.group(
+        1) and int(regexp_command.group(1)) > 0 else 2
+    await states.Homework.show_last.set()
+    async with state.proxy() as data:
+        data["show_last"] = count_hw
+    await message.answer(messages.SELECT_TEACHER, reply_markup=teacher.gen_table(), parse_mode=config.PARSE_MODE)
+
+
+@dp.callback_query_handler(teacher.choice_teacher_callback.filter(), state=states.Homework.show_last)
+async def process_teacher_homework(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    _count_hw: int = 2
+    async with state.proxy() as data:
+        _count_hw = data["show_last"]
+    _teacher: str = callback_data["name"]
+    _homeworks: list[Homework] = homework.convert_to_list(
+        db.select_homeworks(limit=_count_hw, author=_teacher))
+    if len(_homeworks) == 0:
+        await callback_query.message.edit_text(messages.HOMEWORKS_NOT_FOUND)
         return
-    for item in items:
+    for i, item in enumerate(_homeworks):
         actions = InlineKeyboardMarkup()
         callback_edit = showall_callback.new(
             "EDIT", f"{item.author}", f"{item.date.strftime(config.DATE_FORMAT)}")
@@ -274,7 +289,12 @@ async def cmd_showall_homework(message: types.Message):
         delete = InlineKeyboardButton(
             "Delete", callback_data=callback_delete)
         actions.add(edit, delete)
-        await message.answer(item.print(), reply_markup=actions, parse_mode=config.PARSE_MODE)
+        if i == 0:
+            await callback_query.message.edit_text(item.print(), reply_markup=actions, parse_mode=config.PARSE_MODE)
+            continue
+        await callback_query.message.answer(item.print(), reply_markup=actions, parse_mode=config.PARSE_MODE)
+    await state.finish()
+    await states.Homework.workspace.set()
 
 
 @dp.callback_query_handler(showall_callback.filter(), state=states.Homework.workspace)
