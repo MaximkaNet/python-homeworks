@@ -128,9 +128,13 @@ def count_teachers():
     return query_aggregate(sql)[0][0]
 
 
-def select_homeworks(limit: int = 30, offset: int = 0):
-    sql = "SELECT homeworks.id, homeworks.date, homeworks.update, teachers.name FROM homeworks INNER JOIN teachers ON homeworks.author_id=teachers.id ORDER BY homeworks.date DESC LIMIT %s OFFSET %s"
-    val = (limit, offset)
+def select_homeworks(limit: int = 30, offset: int = 0, author: str = ""):
+    if author != "":
+        sql = "SELECT homeworks.id, homeworks.date, homeworks.update, teachers.name FROM homeworks INNER JOIN teachers ON homeworks.author_id=teachers.id WHERE `teachers`.`name` = %s ORDER BY homeworks.date DESC LIMIT %s OFFSET %s"
+        val = (author, limit, offset)
+    else:
+        sql = "SELECT homeworks.id, homeworks.date, homeworks.update, teachers.name FROM homeworks INNER JOIN teachers ON homeworks.author_id=teachers.id ORDER BY homeworks.date DESC LIMIT %s OFFSET %s"
+        val = (limit, offset)
     return query_select(sql, val)
 
 
