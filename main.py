@@ -100,10 +100,10 @@ async def cmd_show_homework(message: types.Message):
 async def process_show_homework(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
     if callback_data["act"] == "tomorrow":
         selected_date: date = date.today() + timedelta(days=1)
-        # find homeworks
-        show_list: list[Homework] = homework.get_last_by_date(selected_date)
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(config.DATE_FORMAT)}_"
+        # find homeworks
+        show_list: list[Homework] = homework.get_last_by_date(selected_date)
         await callback_query.message.edit_text(
             wrapper, reply_markup=None, parse_mode=config.PARSE_MODE)
         if len(show_list) == 0:
