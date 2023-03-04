@@ -277,6 +277,8 @@ async def process_teacher_homework(callback_query: types.CallbackQuery, callback
         db.select_homeworks(limit=_count_hw, author=_teacher))
     if len(_homeworks) == 0:
         await callback_query.message.edit_text(messages.HOMEWORKS_NOT_FOUND)
+        await state.finish()
+        await states.Homework.workspace.set()
         return
     for i, item in enumerate(_homeworks):
         actions = InlineKeyboardMarkup()
