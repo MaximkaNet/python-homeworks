@@ -303,7 +303,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
 
     # selecting teacher for adding homework
     dp.register_callback_query_handler(
-        __process_teacher, utils.teacher.choice_teacher_callback.filter(), state=Homework.teacher)
+        __process_teacher, models.utils.teacher.choice_teacher_callback.filter(), state=Homework.teacher)
 
     # edit question
     dp.register_callback_query_handler(
@@ -314,7 +314,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
 
     # select teacher for showing homeworks
     dp.register_callback_query_handler(
-        __process_teacher_show_last, utils.teacher.choice_teacher_callback.filter(), state=Homework.show_last)
+        __process_teacher_show_last, models.utils.teacher.choice_teacher_callback.filter(), state=Homework.show_last)
 
     # show list actions
     dp.register_callback_query_handler(
