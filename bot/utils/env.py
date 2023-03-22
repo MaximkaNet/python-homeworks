@@ -11,3 +11,4 @@ class Config:
     DATABASE: Final = environ.get("DATABASE", "DB NAME")
     PROXY: Final = environ.get(
         "PROXY", "http://proxy.server:3128")  # telegram proxy
+    DATE_FORMAT: Final = environ.get("DATE_FORMAT", "%d.%m.%y")
