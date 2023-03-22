@@ -8,7 +8,6 @@ from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WEL
 from bot.callbacks.homework import show_homework_callback, showall_callback
 from bot.states.homowerk import Homework
 from bot.utils.env import Config
-from bot.models import utils
 from bot import models
 
 from bot.database.methods import select, delete
@@ -45,7 +44,7 @@ async def __process_show(query: types.CallbackQuery, data: CallbackData, state: 
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
         # find homeworks
-        show_list: list[models.Homework] = utils.homework.get_last_by_date(
+        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
             selected_date)
         await query.message.edit_text(
             wrapper, reply_markup=None)
@@ -75,7 +74,7 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
     if _selected:
         selected_date: date = _date.date()
         # find homeworks
-        show_list: list[models.Homework] = utils.homework.get_last_by_date(
+        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
             selected_date)
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
@@ -83,7 +82,7 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
             wrapper, reply_markup=None)
         if len(show_list) == 0:
             wrapper = f"*{HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
-            await callback_query.message.edit_text(wrapper, reply_markup=None, )
+            await callback_query.message.edit_text(wrapper, reply_markup=None)
             return
         # print results
         wrapper = f"{show_list[0].print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
@@ -96,7 +95,7 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
 
 async def __add(msg: types.Message, state: FSMContext):
     await Homework.teacher.set()
-    tch_table = utils.teacher.gen_table()
+    tch_table = models.utils.teacher.gen_table()
     if tch_table != None:
         await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
         return
@@ -112,7 +111,8 @@ async def __process_teacher(query: types.CallbackQuery, data: CallbackData, stat
         selected_teacher = f"{SELECT_TEACHER} _{data['teacher']}_"
         await query.message.edit_text(selected_teacher)
         # check existed homework
-        is_exist = utils.homework.get_by(data["teacher"], data["add_date"])
+        is_exist = models.utils.homework.get_by(
+            data["teacher"], data["add_date"])
         if is_exist:
             data["homework"] = is_exist
             await Homework.edit_question.set()
@@ -126,7 +126,7 @@ async def __process_teacher(query: types.CallbackQuery, data: CallbackData, stat
 async def __edit_homework_question(msg: types.Message, state: FSMContext):
     if msg.text.lower() == "yes":
         async with state.proxy() as data:
-            homework: Homework = data["homework"]
+            homework: models.Homework = data["homework"]
             selected_teacher = f"{SELECT_TEACHER} _{data['teacher']}_"
             if homework:
                 await msg.answer(f"{selected_teacher}\n{ADD_TASK}")
@@ -147,11 +147,11 @@ async def __edit_homework(msg: types.Message, state: FSMContext):
     elif msg.text == "/hadd":
         await msg.answer(HELP_ADD)
         return
-    temp_homework = Homework()
+    temp_homework = models.Homework()
     isValid = temp_homework.parse_message(msg.text)
     if isValid:
         async with state.proxy() as data:
-            homework: Homework = data["homework"]
+            homework: models.Homework = data["homework"]
             homework.update(temp_homework.tasks)
             # utils.log(edit_homework, "Update homework",
             #           user=f"{message.from_user.full_name} ({message.from_user.username})")
@@ -175,7 +175,7 @@ async def __get_work(msg: types.Message, state: FSMContext):
         await Homework.workspace.set()
         return
     async with state.proxy()as data:
-        temp_obj = Homework()
+        temp_obj = models.Homework()
         isValid = temp_obj.parse_message(msg.text)
         if isValid:
             temp_obj.create(data["teacher"])
@@ -196,7 +196,7 @@ async def __show_last(msg: types.Message, regexp, state: FSMContext):
     await Homework.show_last.set()
     async with state.proxy() as data:
         data["show_last"] = count_hw
-    tch_table = utils.teacher.gen_table()
+    tch_table = models.utils.teacher.gen_table()
     await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
 
 
@@ -205,7 +205,7 @@ async def __process_teacher_show_last(query: types.CallbackQuery, data: Callback
     async with state.proxy() as proxy_data:
         _count_hw = proxy_data["show_last"]
     _teacher: str = data["name"]
-    _homeworks: list[Homework] = utils.homework.convert_to_list(
+    _homeworks: list[models.Homework] = models.utils.homework.convert_to_list(
         select.homeworks(limit=_count_hw, author=_teacher))
     if len(_homeworks) == 0:
         await query.message.edit_text(HOMEWORKS_NOT_FOUND)
@@ -236,7 +236,7 @@ async def __process_actions_show_last(query: types.CallbackQuery, data: Callback
         async with state.proxy() as data:
             date = datetime.strptime(
                 data["date"], Config.DATE_FORMAT).date()
-            _homework: Homework = utils.homework.get_by(
+            _homework: models.Homework = models.utils.homework.get_by(
                 data["author"], date)
             data["homework"] = _homework
             selected_teacher = f"{SELECT_TEACHER} _{data['author']}_"
@@ -247,7 +247,7 @@ async def __process_actions_show_last(query: types.CallbackQuery, data: Callback
     else:
         date = datetime.strptime(
             data["date"], Config.DATE_FORMAT).date()
-        delete_homework = utils.homework.get_by(data["author"], date)
+        delete_homework = models.utils.homework.get_by(data["author"], date)
         if not delete_homework:
             # utils.debug(process_homeworks_actions, "Obj not found.")
             await query.message.delete()
