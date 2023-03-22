@@ -6,6 +6,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED, HOMEWORK_DELETED
 from bot.callbacks.homework import show_homework_callback, showall_callback
+from bot.callbacks.teacher import choice_teacher_callback
 from bot.states.homowerk import Homework
 from bot.utils.env import Config
 from bot import models
@@ -303,7 +304,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
 
     # selecting teacher for adding homework
     dp.register_callback_query_handler(
-        __process_teacher, models.utils.teacher.choice_teacher_callback.filter(), state=Homework.teacher)
+        __process_teacher, choice_teacher_callback.filter(), state=Homework.teacher)
 
     # edit question
     dp.register_callback_query_handler(
@@ -314,7 +315,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
 
     # select teacher for showing homeworks
     dp.register_callback_query_handler(
-        __process_teacher_show_last, models.utils.teacher.choice_teacher_callback.filter(), state=Homework.show_last)
+        __process_teacher_show_last, choice_teacher_callback.filter(), state=Homework.show_last)
 
     # show list actions
     dp.register_callback_query_handler(
