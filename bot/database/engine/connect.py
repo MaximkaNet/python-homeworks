@@ -1,5 +1,7 @@
 import mysql.connector as connector
-from ...utils.env import Config
+
+from bot.utils.env import Config
+
 from .exception import DBException
 
 
