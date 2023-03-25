@@ -37,28 +37,28 @@ async def __show(message: types.Message):
         await message.answer(item.print(), reply_markup=act_kb)
 
 
-async def __process_show(query: types.CallbackQuery, data: CallbackData, state: FSMContext):
-    if data["act"] == "EDIT":
+async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    if callback_data["act"] == "EDIT":
         async with state.proxy() as proxy_data:
-            proxy_data["name"] = data["name"]
-        _teacher = data["name"]
-        work_days = json.loads(data["work_days"])
-        await query.message.edit_text(f"Selected teacher: {_teacher}\nNow choose working day(s), where the teacher works.\n_Selected days: _" + ", ".join(map(str, convert_week(work_days))), reply_markup=await SelectWeekDays().start())
-    elif data["act"] == "DELETE":
+            proxy_data["name"] = callback_data["name"]
+        _teacher = callback_data["name"]
+        work_days = json.loads(callback_data["work_days"])
+        await callback_query.message.edit_text(f"Selected teacher: {_teacher}\nNow choose working day(s), where the teacher works.\n_Selected days: _" + ", ".join(map(str, convert_week(work_days))), reply_markup=await SelectWeekDays().start())
+    elif callback_data["act"] == "DELETE":
         delete_teacher = models.utils.teacher.convert_to_list(
-            select.teacher_by(data["name"]))
+            select.teacher_by(callback_data["name"]))
         if not len(delete_teacher):
             # utils.debug(actions_show, "Obj not found.")
-            await query.message.delete()
+            await callback_query.message.delete()
             await state.finish()
             await Teacher.workspace.set()
             return
-        delete.teacher(data["name"])
-        await query.message.delete()
+        delete.teacher(callback_data["name"])
+        await callback_query.message.delete()
 
 
-async def __process_actions_show(query: types.CallbackQuery, data: CallbackData, state: FSMContext):
-    selected, days = await SelectWeekDays().process_select(query, data)
+async def __process_actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
         async with state.proxy() as proxy_data:
             update.teacher(proxy_data["name"], days)
@@ -71,7 +71,7 @@ async def __process_actions_show(query: types.CallbackQuery, data: CallbackData,
         _teacher = models.utils.teacher.convert_to_list(
             select.teacher_by(proxy_data["name"]))
         if len(_teacher):
-            await query.message.edit_text(_teacher[0].print(), reply_markup=act_kb)
+            await callback_query.message.edit_text(_teacher[0].print(), reply_markup=act_kb)
 
 
 async def __add(message: types.Message):
@@ -86,16 +86,16 @@ async def __name(message: types.Message, state: FSMContext):
         await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays([]).start())
 
 
-async def __process_select_days(query: types.CallbackQuery, data: CallbackData, state: FSMContext):
-    selected, days = await SelectWeekDays().process_select(query, data)
+async def __process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
         if not len(days):
-            await query.message.edit_text(ACTION_CANCELED)
+            await callback_query.message.edit_text(ACTION_CANCELED)
         else:
             async with state.proxy() as proxy_data:
                 name = proxy_data["name"]
                 insert.teacher(name, days)
-                await query.message.answer(TEACHER_ADDED)
+                await callback_query.message.answer(TEACHER_ADDED)
         await state.finish()
         await Teacher.workspace.set()
 
@@ -105,11 +105,11 @@ async def __change_name(message: types.Message):
     await message.answer("Select a teacher:", reply_markup=tch_table)
 
 
-async def __process_select_change(query: types.CallbackQuery, data: CallbackData, state: FSMContext):
-    teacher_name = data["name"]
-    await query.message.edit_text(f"Selected teacher: *{teacher_name}*\nType new name.", )
+async def __process_select_change(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    teacher_name = callback_data["name"]
+    await callback_query.message.edit_text(f"Selected teacher: *{teacher_name}*\nType new name.", )
     async with state.proxy() as proxy_data:
-        proxy_data["name"] = data["name"]
+        proxy_data["name"] = callback_data["name"]
     await Teacher.new_name.set()
 
 
