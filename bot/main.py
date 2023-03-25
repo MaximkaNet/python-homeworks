@@ -7,12 +7,14 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from bot.handlers.main import register_all_handlers
 
 
-async def _on_startup(dp: Dispatcher):
+async def __on_startup(dp: Dispatcher):
     logging.debug("Bot started.")
     register_all_handlers(dp)
 
 
 def start_bot() -> None:
-    bot = Bot(token=Config.TOKEN, proxy=Config.PROXY, parse_mode="markdown")
+    bot = Bot(token=Config.TOKEN,
+              proxy=None if Config.PROXY == "None" else Config.PROXY,
+              parse_mode="markdown")
     dp = Dispatcher(bot, storage=MemoryStorage())
-    executor.start_polling(dp, skip_updates=True, on_startup=_on_startup)
+    executor.start_polling(dp, skip_updates=True, on_startup=__on_startup)
