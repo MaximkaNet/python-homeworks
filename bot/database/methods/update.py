@@ -26,8 +26,8 @@ def teacher(name: str, work_days: list[int] = [], new_name: str = ""):
     insert(sql, val)
 
 
-def homework_by(author: str, date: date, update: date):
+def homework_by(_author: str, _date: date, _update: date):
     sql = "UPDATE `homeworks` INNER JOIN teachers ON `homeworks`.`author_id`=`teachers`.`id` SET `homeworks`.`update` = %s WHERE `teachers`.`name` = %s AND `homeworks`.`date` = %s"
-    val = (update.strftime(DATE_FORMAT),
-           author, date.strftime(DATE_FORMAT))
+    val = (_update.strftime(DATE_FORMAT),
+           _author, _date.strftime(DATE_FORMAT))
     return update(sql, val)
