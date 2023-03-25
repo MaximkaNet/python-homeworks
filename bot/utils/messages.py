@@ -11,10 +11,12 @@ This is homework managment bot.
 /homework - Show last homework
 """
 HELP_ADD = """
-To add a new task:
+*To add a new task*:
 1. Select a teacher.
 2. Write homework in the correct format:
 
+_source   task1   task2_
+   👇      👇     👇
 _Pracak: s.13() # some text 2... s.123(1,23)_
 or
 _Some book1: s.1() s.12 #some text... s.12(1,2a)_
