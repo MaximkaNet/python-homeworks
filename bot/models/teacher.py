@@ -1,4 +1,4 @@
-from bot.database.methods import update
+import bot.database.methods.update as update
 from bot.utils import convert_week
 
 

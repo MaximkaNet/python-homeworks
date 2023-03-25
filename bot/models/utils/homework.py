@@ -1,7 +1,8 @@
 from bot import models
-from bot.models.utils import task, teacher
 from bot.utils.env import Config
-from bot.database.methods import count, select
+from bot.models.utils import task, teacher
+import bot.database.methods.count as count
+import bot.database.methods.select as select
 
 import logging
 from datetime import date

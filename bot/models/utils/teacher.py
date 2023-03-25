@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot import models
-from bot.database.methods.select import select
 from bot.callbacks.teacher import choice_teacher_callback
+import bot.database.methods.select as select
 
 import math
 import logging

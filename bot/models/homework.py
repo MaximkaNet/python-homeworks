@@ -1,6 +1,9 @@
 from bot import models
-from bot.database.methods import update, insert, select, delete
 from bot.utils.env import Config
+import bot.database.methods.update as update
+import bot.database.methods.select as select
+import bot.database.methods.delete as delete
+import bot.database.methods.insert as insert
 
 from datetime import date
 import json

@@ -1,4 +1,4 @@
-import utils
+from bot.utils import trim
 
 
 class Task:
@@ -28,7 +28,7 @@ class Task:
     # string parser
 
     def string_parser(self, str: str):
-        str = utils.trim(str)
+        str = trim(str)
         end_source_index = str.find(":")
         self.source = str[0:end_source_index]
         self.exercises = []
