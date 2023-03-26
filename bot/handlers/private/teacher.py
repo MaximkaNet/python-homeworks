@@ -44,7 +44,7 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
             proxy_data["name"] = callback_data["name"]
         _teacher = callback_data["name"]
         work_days = json.loads(callback_data["work_days"])
-        await callback_query.message.edit_text(f"Selected teacher: {_teacher}\nNow choose working day(s), where the teacher works.\n_Selected days: _" + ", ".join(map(str, convert_week(work_days))), reply_markup=await SelectWeekDays().start())
+        await callback_query.message.edit_text(f"Selected teacher: {_teacher}\nNow choose working day(s), where the teacher works.\n_Selected days: _" + ", ".join(map(str, convert_week(work_days))), reply_markup=await SelectWeekDays().start(work_days))
     elif callback_data["act"] == "DELETE":
         delete_teacher = models.utils.teacher.convert_to_list(
             select.teacher_by(callback_data["name"]))
@@ -84,7 +84,7 @@ async def __name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["name"] = message.text
         await Teacher.work_days.set()
-        await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays([]).start())
+        await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays().start())
 
 
 async def __process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):

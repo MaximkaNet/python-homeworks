@@ -5,23 +5,10 @@ LOG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def convert_week(days: list[int]) -> list[str]:
+    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     week = []
-    for item in days:
-        match item:
-            case 0:
-                week.append("Mon")
-            case 1:
-                week.append("Tue")
-            case 2:
-                week.append("Wed")
-            case 3:
-                week.append("Thu")
-            case 4:
-                week.append("Fri")
-            case 5:
-                week.append("Sat")
-            case 6:
-                week.append("Sun")
+    for i, item in enumerate(days):
+        week.append(day_names[item])
     return week
 
 
