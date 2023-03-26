@@ -5,6 +5,7 @@ from aiogram.utils.callback_data import CallbackData
 
 from bot import models
 from bot.utils import convert_week
+from bot.filters import IsPrivate
 from bot.utils.messages import TEACHER_PANEL_WELLCOME, TCH_PANEL_COMMANDS, ACTION_CANCELED, TEACHER_ADDED, TEACHER_EDITED, TEACHER_PANEL_BYE
 from bot.states.teacher import Teacher
 from bot.database.methods import select, delete, update, insert
@@ -128,25 +129,26 @@ async def __close(message: types.Message, state: FSMContext):
 
 def register_teacher_handlers(dp: Dispatcher):
     # select teacher panel
-    dp.register_message_handler(__teacher, commands=['teacher'])
+    dp.register_message_handler(
+        __teacher, IsPrivate(), commands=['teacher'], state="*")
 
     # show panel commands
     dp.register_message_handler(
-        __help, commands=['help'], state=Teacher.workspace)
+        __help, IsPrivate(), commands=['help'], state=Teacher.workspace)
 
     # show all teachers
     dp.register_message_handler(
-        __show, commands=["show"], state=Teacher.workspace)
+        __show, IsPrivate(), commands=["show"], state=Teacher.workspace)
 
     # add new teacher
     dp.register_message_handler(
-        __add, commands=['add'], state=Teacher.workspace)
+        __add, IsPrivate(), commands=['add'], state=Teacher.workspace)
 
     # type teacher name
     dp.register_message_handler(__name, state=Teacher.name)
 
     # select a teacher
-    dp.register_message_handler(__change_name, commands=[
+    dp.register_message_handler(__change_name, IsPrivate(), commands=[
                                 'changename'], state=Teacher.workspace)
 
     # set new name
@@ -154,7 +156,7 @@ def register_teacher_handlers(dp: Dispatcher):
 
     # close workspace
     dp.register_message_handler(
-        __close, commands=["close"], state=Teacher.workspace)
+        __close, IsPrivate(), commands=["close"], state=Teacher.workspace)
 
     # show actions
     dp.register_callback_query_handler(

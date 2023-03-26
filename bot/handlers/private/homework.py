@@ -9,6 +9,7 @@ from bot.callbacks.homework import show_homework_callback, actions_show_all_call
 from bot.callbacks.teacher import choice_teacher_callback
 from bot.states.homowerk import Homework
 from bot.utils.env import Config
+from bot.filters import IsPrivate
 from bot import models
 
 from bot.database.methods import select, delete
@@ -269,22 +270,24 @@ async def __close(msg: types.Message, state: FSMContext):
 
 def register_homework_handlers(dp: Dispatcher) -> None:
     # add action help
-    dp.register_message_handler(__add_help, commands=['addh'], state="*")
+    dp.register_message_handler(
+        __add_help, IsPrivate(), commands=['addh'], state="*")
 
     # switch to homework panel
-    dp.register_message_handler(__homework, commands=['homework'], state="*")
+    dp.register_message_handler(
+        __homework, IsPrivate(), commands=['homework'], state="*")
 
     # commands in panel
     dp.register_message_handler(
-        __help, commands=['help'], state=Homework.workspace)
+        __help, IsPrivate(), commands=['help'], state=Homework.workspace)
 
     # show homework
     dp.register_message_handler(
-        __show, commands=['show'], state=Homework.workspace)
+        __show, IsPrivate(), commands=['show'], state=Homework.workspace)
 
     # add homework
     dp.register_message_handler(
-        __add, commands=['add'], state=Homework.workspace)
+        __add, IsPrivate(), commands=['add'], state=Homework.workspace)
 
     # get message with excersices
     dp.register_message_handler(__get_work, state=Homework.work)
@@ -294,7 +297,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
 
     # close homework panel
     dp.register_message_handler(
-        __close, commands=['close'], state=Homework.workspace)
+        __close, IsPrivate(), commands=['close'], state=Homework.workspace)
 
     # edit question
     dp.register_message_handler(
