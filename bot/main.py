@@ -7,7 +7,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from bot.handlers.main import register_all_handlers
 
 
-async def __on_startup(dp: Dispatcher):
+async def __on_startup(dp: Dispatcher) -> None:
     logging.debug("Bot started.")
     register_all_handlers(dp)
 

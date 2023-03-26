@@ -16,16 +16,16 @@ from bot.callbacks.selectweekdays import week_days_callback
 import json
 
 
-async def __teacher(message: types.Message):
+async def __teacher(message: types.Message) -> None:
     await Teacher.workspace.set()
     await message.answer(f"{TEACHER_PANEL_WELLCOME}\n\n{TCH_PANEL_COMMANDS}")
 
 
-async def __help(message: types.Message):
+async def __help(message: types.Message) -> None:
     await message.answer(TCH_PANEL_COMMANDS)
 
 
-async def __show(message: types.Message):
+async def __show(message: types.Message) -> None:
     teachers = models.utils.teacher.convert_to_list(select.teachers())
     if len(teachers) == 0:
         await message.answer(TEACHERS_NOT_FOUND)
@@ -40,7 +40,7 @@ async def __show(message: types.Message):
         await message.answer(item.print(), reply_markup=act_kb)
 
 
-async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     if callback_data["act"] == "EDIT":
         async with state.proxy() as proxy_data:
             proxy_data["name"] = callback_data["name"]
@@ -60,7 +60,7 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         await callback_query.message.delete()
 
 
-async def __process_actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
         async with state.proxy() as proxy_data:
@@ -77,12 +77,12 @@ async def __process_actions_show(callback_query: types.CallbackQuery, callback_d
             await callback_query.message.edit_text(_teacher[0].print(), reply_markup=act_kb)
 
 
-async def __add(message: types.Message):
+async def __add(message: types.Message) -> None:
     await message.answer("Type the teacher name:")
     await Teacher.name.set()
 
 
-async def __name(message: types.Message, state: FSMContext):
+async def __name(message: types.Message, state: FSMContext) -> None:
     # check unique name
     if len(select.teacher_by(message.text)) != 0:
         await message.answer("Already exist. /help")
@@ -95,7 +95,7 @@ async def __name(message: types.Message, state: FSMContext):
         await message.answer("Now choose working day(s), where the teacher works.", reply_markup=await SelectWeekDays().start())
 
 
-async def __process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
         if not len(days):
@@ -109,7 +109,7 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
         await Teacher.workspace.set()
 
 
-async def __change_name(message: types.Message):
+async def __change_name(message: types.Message) -> None:
     tch_table = models.utils.teacher.gen_table()
     if tch_table == None:
         await message.answer(TEACHERS_NOT_FOUND)
@@ -117,7 +117,7 @@ async def __change_name(message: types.Message):
     await message.answer("Select a teacher:", reply_markup=tch_table)
 
 
-async def __process_select_change(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_select_change(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     teacher_name = callback_data["name"]
     await callback_query.message.edit_text(f"Selected teacher: *{teacher_name}*\nType new name.", )
     async with state.proxy() as proxy_data:
@@ -125,7 +125,7 @@ async def __process_select_change(callback_query: types.CallbackQuery, callback_
     await Teacher.new_name.set()
 
 
-async def __new_name(message: types.Message, state: FSMContext):
+async def __new_name(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         update.teacher(data["name"], new_name=message.text)
     await state.finish()
@@ -133,12 +133,12 @@ async def __new_name(message: types.Message, state: FSMContext):
     await message.answer(TEACHER_EDITED)
 
 
-async def __close(message: types.Message, state: FSMContext):
+async def __close(message: types.Message, state: FSMContext) -> None:
     await state.finish()
     await message.answer(TEACHER_PANEL_BYE)
 
 
-def register_teacher_handlers(dp: Dispatcher):
+def register_teacher_handlers(dp: Dispatcher) -> None:
     # select teacher panel
     dp.register_message_handler(
         __teacher, IsPrivate(), commands=['teacher'], state="*")

@@ -31,7 +31,7 @@ class SelectWeekDays:
         ))
         return ikb
 
-    async def start(self, work_days: list[int] = []):
+    async def start(self, work_days: list[int] = []) -> InlineKeyboardMarkup:
         init_days = [False, False, False, False, False, False, False]
         # init work days
         if len(work_days):
@@ -58,7 +58,7 @@ class SelectWeekDays:
         ))
         return ikb
 
-    def print(self, selected: list[int]):
+    def print(self, selected: list[int]) -> str:
         converted_week = convert_week(selected)
         string = "Selected days: "
         string += ", ".join(map(str, converted_week))
@@ -73,10 +73,10 @@ class SelectWeekDays:
         return [callback_data["mon"], callback_data["tue"], callback_data["wed"],
                 callback_data["thu"], callback_data["fri"], callback_data["sat"], callback_data["sun"]]
 
-    def to_int(self, arr: list[bool]):
+    def to_int(self, arr: list[bool]) -> list[str]:
         return [i for i, item in enumerate(arr) if item == 'True']
 
-    async def process_select(self, query: CallbackQuery, data: CallbackData):
+    async def process_select(self, query: CallbackQuery, data: CallbackData) -> tuple[bool, list]:
         return_data = (False, None)
         if data["act"] == "SELECT":
             toggled_days = self.toggle_day(data, data["day"])

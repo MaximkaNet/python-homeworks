@@ -7,7 +7,7 @@ from bot.database.engine.exception import ConnectionError, DBException
 import logging
 
 
-def teacher(name: str):
+def teacher(name: str) -> None:
     sql = f"DELETE FROM teachers WHERE name = '{name}'"
     try:
         delete(sql)
@@ -17,7 +17,7 @@ def teacher(name: str):
         logging.error(err)
 
 
-def homework(date: date, author: str):
+def homework(date: date, author: str) -> None:
     sql = "DELETE FROM homeworks WHERE date = %s AND author_id = (SELECT `id` FROM `teachers` WHERE `name` = %s)"
     val = (date.strftime(DATE_FORMAT), author)
     try:
@@ -28,7 +28,7 @@ def homework(date: date, author: str):
         logging.error(err)
 
 
-def tasks_by(homework_id: int):
+def tasks_by(homework_id: int) -> None:
     sql = f"DELETE FROM `tasks` WHERE `homework_id` = {homework_id}"
     try:
         delete(sql)

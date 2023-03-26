@@ -2,7 +2,7 @@ from bot.utils import trim
 
 
 class Task:
-    def __init__(self, source: str = "", exercises: list = [], sentences: list = []):
+    def __init__(self, source: str = "", exercises: list = [], sentences: list = []) -> None:
         self.source: str = source
         self.exercises: list[str] = exercises
         self.sentences: list[str] = sentences

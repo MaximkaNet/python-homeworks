@@ -57,7 +57,7 @@ def get_last_by_date(date: date) -> list[models.Homework]:
     return show_list
 
 
-def get_by(name: str, date: date):
+def get_by(name: str, date: date) -> models.Homework:
     homeworks = convert_to_list(
         select.homework_by(name, date))
     if len(homeworks) == 0:

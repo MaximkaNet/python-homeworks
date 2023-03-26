@@ -4,7 +4,7 @@ from bot.database.engine.exception import ConnectionError, DBException
 import logging
 
 
-def teachers():
+def teachers() -> int:
     sql = "SELECT COUNT(*) FROM `teachers`"
     try:
         res = aggregate(sql)[0][0]
@@ -16,7 +16,7 @@ def teachers():
         return res
 
 
-def homeworks():
+def homeworks() -> int:
     sql = "SELECT COUNT(*) FROM `homeworks`"
     try:
         res = aggregate(sql)[0][0]

@@ -1,7 +1,7 @@
 from bot.main import start_bot
 
 
-def main():
+def main() -> None:
     start_bot()
 
 

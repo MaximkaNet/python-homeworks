@@ -5,7 +5,7 @@ from bot.utils.env import Config
 from .exception import ConnectionError
 
 
-def connection():
+def connection() -> connector.MySQLConnection:
     try:
         con = connector.connect(
             username=Config.USER,

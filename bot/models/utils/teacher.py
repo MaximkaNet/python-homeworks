@@ -8,7 +8,7 @@ import math
 import logging
 
 
-def gen_table():
+def gen_table() -> InlineKeyboardMarkup:
     items = convert_to_list(select.teachers())
     if len(items) == 0:
         logging.debug("Items not found")

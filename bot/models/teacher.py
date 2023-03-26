@@ -3,11 +3,11 @@ from bot.utils import convert_week
 
 
 class Teacher:
-    def __init__(self, name: str = "", work_days: list[int] = []):
+    def __init__(self, name: str = "", work_days: list[int] = []) -> None:
         self.name = name
         self.work_days = work_days
 
-    def update(self, work_days: list[int], new_name: str = ""):
+    def update(self, work_days: list[int], new_name: str = "") -> None:
         if new_name != "":
             update.teacher(self.name, work_days, new_name)
             self.work_days = work_days
@@ -21,7 +21,7 @@ class Teacher:
     def has_work_day(self, number: int) -> bool:
         return True if number in self.work_days else False
 
-    def print(self):
+    def print(self) -> str:
         converted_week = convert_week(self.work_days)
         message = f"Teacher *{self.name}* work in "
         message += ", ".join(map(str, converted_week))

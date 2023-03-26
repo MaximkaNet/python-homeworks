@@ -16,15 +16,15 @@ from aiogram_calendar import dialog_cal_callback, DialogCalendar
 from datetime import date, timedelta
 
 
-async def __start(msg: types.Message):
+async def __start(msg: types.Message) -> None:
     await msg.answer(WELLCOME_GROUP)
 
 
-async def __help(msg: types.Message):
+async def __help(msg: types.Message) -> None:
     await msg.answer(WELLCOME_GROUP)
 
 
-async def __homework(msg: types.Message):
+async def __homework(msg: types.Message) -> None:
     await Homework.show.set()
     ikb = InlineKeyboardMarkup()
     ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "group")),
@@ -32,7 +32,7 @@ async def __homework(msg: types.Message):
     await msg.reply("Select a date:", reply_markup=ikb)
 
 
-async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     if callback_data["act"] == "tomorrow":
         selected_date: date = date.today() + timedelta(days=1)
         # loading..
@@ -60,7 +60,7 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         await state.finish()
 
 
-async def __process_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData):
+async def __process_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData) -> None:
     _selected, _date = await DialogCalendar().process_selection(callback_query, callback_data)
     if _selected:
         selected_date: date = _date.date()

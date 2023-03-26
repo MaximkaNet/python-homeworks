@@ -8,7 +8,7 @@ from bot.database.engine.exception import ConnectionError, DBException
 import logging
 
 
-def teacher(name: str, work_days: list[int] = [], new_name: str = ""):
+def teacher(name: str, work_days: list[int] = [], new_name: str = "") -> None:
     if new_name != "" and not len(work_days):
         sql = "UPDATE `teachers` SET `name` = %s WHERE `name` = %s"
         val = (new_name, name)
@@ -40,7 +40,7 @@ def teacher(name: str, work_days: list[int] = [], new_name: str = ""):
         logging.error(err)
 
 
-def homework_by(_author: str, _date: date, _update: date):
+def homework_by(_author: str, _date: date, _update: date) -> None:
     sql = "UPDATE `homeworks` INNER JOIN teachers ON `homeworks`.`author_id`=`teachers`.`id` SET `homeworks`.`update` = %s WHERE `teachers`.`name` = %s AND `homeworks`.`date` = %s"
     val = (_update.strftime(DATE_FORMAT),
            _author, _date.strftime(DATE_FORMAT))

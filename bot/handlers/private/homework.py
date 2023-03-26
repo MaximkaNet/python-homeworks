@@ -19,20 +19,20 @@ from aiogram_calendar import dialog_cal_callback, DialogCalendar
 from datetime import date, timedelta, datetime
 
 
-async def __add_help(msg: types.Message):
+async def __add_help(msg: types.Message) -> None:
     await msg.answer(HELP_ADD)
 
 
-async def __homework(msg: types.Message):
+async def __homework(msg: types.Message) -> None:
     await Homework.workspace.set()
     await msg.answer(f"{HOMEWORK_PANEL_WELLCOME}\n\n{HW_PANEL_COMMANDS}")
 
 
-async def __help(msg: types.Message):
+async def __help(msg: types.Message) -> None:
     await msg.answer(HW_PANEL_COMMANDS)
 
 
-async def __show(msg: types.Message):
+async def __show(msg: types.Message) -> None:
     await Homework.show.set()
     ikb = InlineKeyboardMarkup()
     ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "private")),
@@ -40,7 +40,7 @@ async def __show(msg: types.Message):
     await msg.reply("Select a date:", reply_markup=ikb)
 
 
-async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     if callback_data["act"] == "tomorrow":
         selected_date: date = date.today() + timedelta(days=1)
         # loading..
@@ -71,7 +71,7 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         await Homework.workspace.set()
 
 
-async def __process_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData):
+async def __process_calendar(callback_query: types.CallbackQuery, callback_data: CallbackData) -> None:
     _selected, _date = await DialogCalendar().process_selection(callback_query, callback_data)
     if _selected:
         selected_date: date = _date.date()
@@ -95,7 +95,7 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
             await callback_query.message.answer(wrapper)
 
 
-async def __add(msg: types.Message, state: FSMContext):
+async def __add(msg: types.Message, state: FSMContext) -> None:
     await Homework.teacher.set()
     tch_table = models.utils.teacher.gen_table()
     if tch_table != None:
@@ -106,7 +106,7 @@ async def __add(msg: types.Message, state: FSMContext):
     await Homework.workspace.set()
 
 
-async def __process_teacher(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_teacher(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     async with state.proxy() as proxy_data:
         proxy_data["teacher"] = callback_data["name"]
         proxy_data["add_date"] = date.today()
@@ -125,7 +125,7 @@ async def __process_teacher(callback_query: types.CallbackQuery, callback_data: 
         await Homework.work.set()
 
 
-async def __edit_homework_question(msg: types.Message, state: FSMContext):
+async def __edit_homework_question(msg: types.Message, state: FSMContext) -> None:
     if msg.text.lower() == "yes":
         async with state.proxy() as proxy_data:
             homework: models.Homework = proxy_data["homework"]
@@ -140,7 +140,7 @@ async def __edit_homework_question(msg: types.Message, state: FSMContext):
         await Homework.workspace.set()
 
 
-async def __edit_homework(msg: types.Message, state: FSMContext):
+async def __edit_homework(msg: types.Message, state: FSMContext) -> None:
     if msg.text == "/cancel":
         await msg.answer(ACTION_CANCELED)
         await state.finish()
@@ -167,7 +167,7 @@ async def __edit_homework(msg: types.Message, state: FSMContext):
         return
 
 
-async def __get_work(msg: types.Message, state: FSMContext):
+async def __get_work(msg: types.Message, state: FSMContext) -> None:
     if msg.text == "/hadd":
         await msg.answer(HELP_ADD)
         return
@@ -192,7 +192,7 @@ async def __get_work(msg: types.Message, state: FSMContext):
             await Homework.work.set()
 
 
-async def __show_last(msg: types.Message, regexp_command, state: FSMContext):
+async def __show_last(msg: types.Message, regexp_command, state: FSMContext) -> None:
     count_hw = int(regexp_command.group(1)) if regexp_command.group(
         1) and int(regexp_command.group(1)) > 0 else 2
     tch_table = models.utils.teacher.gen_table()
@@ -205,7 +205,7 @@ async def __show_last(msg: types.Message, regexp_command, state: FSMContext):
     await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
 
 
-async def __process_teacher_show_last(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_teacher_show_last(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     _count_hw: int = 2
     async with state.proxy() as proxy_data:
         _count_hw = proxy_data["show_last"]
@@ -236,7 +236,7 @@ async def __process_teacher_show_last(callback_query: types.CallbackQuery, callb
     await Homework.workspace.set()
 
 
-async def __process_actions_show_last(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+async def __process_actions_show_last(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     if (callback_data["action"] == "EDIT"):
         async with state.proxy() as proxy_data:
             date = datetime.strptime(
@@ -266,7 +266,7 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
         await Homework.workspace.set()
 
 
-async def __close(msg: types.Message, state: FSMContext):
+async def __close(msg: types.Message, state: FSMContext) -> None:
     await msg.answer(HOMEWORK_PANEL_BYE)
     await state.finish()
 

@@ -3,7 +3,7 @@ from .exception import ConnectionError, SelectError, InsertError, UpdateError, D
 import mysql.connector as connector
 
 
-def select(sql: str, val: tuple = None):
+def select(sql: str, val: tuple = None) -> list:
     try:
         con = connection()
         cursor = con.cursor()
@@ -36,7 +36,7 @@ def insert(sql: str, val: tuple | list[tuple] = None) -> int:
         return cursor.lastrowid
 
 
-def update(sql: str, val: tuple = None):
+def update(sql: str, val: tuple = None) -> None:
     try:
         con = connection()
         cursor = con.cursor()
@@ -48,7 +48,7 @@ def update(sql: str, val: tuple = None):
         raise connErr
 
 
-def delete(sql: str, val: tuple = None):
+def delete(sql: str, val: tuple = None) -> None:
     try:
         con = connection()
         cursor = con.cursor()
@@ -60,7 +60,7 @@ def delete(sql: str, val: tuple = None):
         raise connErr
 
 
-def aggregate(sql, val: tuple = None):
+def aggregate(sql, val: tuple = None) -> list:
     try:
         con = connection()
         cursor = con.cursor()

@@ -7,7 +7,7 @@ from bot.database.engine.exception import DBException, ConnectionError
 import logging
 
 
-def teacher(name: str, work_days: list[int]):
+def teacher(name: str, work_days: list[int]) -> None:
     try:
         sql = f"INSERT INTO `teachers`(`name`) VALUES ('{name}')"
         lastrowid = insert(sql)
@@ -20,7 +20,7 @@ def teacher(name: str, work_days: list[int]):
         logging.error(err)
 
 
-def homework(date: date, update: date, author_id: int):
+def homework(date: date, update: date, author_id: int) -> int:
     sql = "INSERT INTO `homeworks`(`date`, `update`, `author_id`) VALUES (%s, %s, %s)"
     val = (date.strftime(DATE_FORMAT),
            update.strftime(DATE_FORMAT), author_id)
@@ -34,7 +34,7 @@ def homework(date: date, update: date, author_id: int):
         return res
 
 
-def task(source: str, exercises: str, sentences: str, homework_id: int):
+def task(source: str, exercises: str, sentences: str, homework_id: int) -> int:
     sql = "INSERT INTO `tasks`(`source`, `exercises`, `sentences`, `homework_id`) VALUES (%s, %s, %s, %s)"
     val = (source, exercises, sentences, homework_id)
     try:

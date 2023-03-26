@@ -10,13 +10,13 @@ import json
 
 
 class Homework:
-    def __init__(self, _date: date = None, _update: date = None, _author: str = "", _tasks: list = []):
+    def __init__(self, _date: date = None, _update: date = None, _author: str = "", _tasks: list = []) -> None:
         self.date: date = _date
         self.update_date: date = _date if _update == None else _update
         self.author: str = _author
         self.tasks: list[models.Task] = _tasks
 
-    def update(self, tasks: list):
+    def update(self, tasks: list) -> None:
         self.tasks = tasks
         self.update_date = date.today()
         update.homework_by(self.author, self.date, self.update_date)
@@ -26,7 +26,7 @@ class Homework:
             insert.task(task.source, json.dumps(
                 task.exercises), json.dumps(task.sentences), homework_id)
 
-    def create(self, author: str):
+    def create(self, author: str) -> None:
         self.date = date.today()
         self.update_date = date.today()
         self.author = author
@@ -59,7 +59,7 @@ class Homework:
             temp = None
         return True
 
-    def print(self, separator: str = "|-"):
+    def print(self, separator: str = "|-") -> str:
         sections: str = ""
         for task in self.tasks:
             sections += task.print(separator)

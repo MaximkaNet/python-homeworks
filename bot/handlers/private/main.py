@@ -9,11 +9,11 @@ from bot.handlers.private.teacher import register_teacher_handlers
 from bot.filters import IsPrivate
 
 
-async def __start(msg: types.Message):
+async def __start(msg: types.Message) -> None:
     await msg.answer(WELLCOME_USER)
 
 
-async def __help(msg: types.Message):
+async def __help(msg: types.Message) -> None:
     await msg.answer(WELLCOME_USER)
 
 
