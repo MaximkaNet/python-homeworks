@@ -6,7 +6,7 @@ from aiogram.utils.callback_data import CallbackData
 from bot import models
 from bot.utils import convert_week
 from bot.filters import IsPrivate
-from bot.utils.messages import TEACHER_PANEL_WELLCOME, TCH_PANEL_COMMANDS, ACTION_CANCELED, TEACHER_ADDED, TEACHER_EDITED, TEACHER_PANEL_BYE
+from bot.utils.messages import TEACHER_PANEL_WELLCOME, TCH_PANEL_COMMANDS, ACTION_CANCELED, TEACHER_ADDED, TEACHER_EDITED, TEACHER_PANEL_BYE, TEACHERS_NOT_FOUND
 from bot.states.teacher import Teacher
 from bot.database.methods import select, delete, update, insert
 from bot.callbacks.teacher import show_teacher_actions, choice_teacher_callback
@@ -27,7 +27,7 @@ async def __help(message: types.Message):
 
 async def __show(message: types.Message):
     teachers = models.utils.teacher.convert_to_list(select.teachers())
-
+    await message.answer(TEACHERS_NOT_FOUND)
     for item in teachers:
         act_kb = InlineKeyboardMarkup(row_width=2)
         act_kb.row()
@@ -103,6 +103,9 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
 
 async def __change_name(message: types.Message):
     tch_table = models.utils.teacher.gen_table()
+    if tch_table == None:
+        await message.answer(TEACHERS_NOT_FOUND)
+        return
     await message.answer("Select a teacher:", reply_markup=tch_table)
 
 
