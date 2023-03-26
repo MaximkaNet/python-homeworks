@@ -101,7 +101,7 @@ async def __add(msg: types.Message, state: FSMContext):
     if tch_table != None:
         await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
         return
-    await msg.answer(f"{TEACHERS_NOT_FOUND}\nCommands: /help")
+    await msg.answer(TEACHERS_NOT_FOUND)
     await state.finish()
     await Homework.workspace.set()
 
@@ -195,10 +195,13 @@ async def __get_work(msg: types.Message, state: FSMContext):
 async def __show_last(msg: types.Message, regexp_command, state: FSMContext):
     count_hw = int(regexp_command.group(1)) if regexp_command.group(
         1) and int(regexp_command.group(1)) > 0 else 2
+    tch_table = models.utils.teacher.gen_table()
+    if tch_table == None:
+        await msg.answer(TEACHERS_NOT_FOUND)
+        return
     await Homework.show_last.set()
     async with state.proxy() as proxy_data:
         proxy_data["show_last"] = count_hw
-    tch_table = models.utils.teacher.gen_table()
     await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
 
 
