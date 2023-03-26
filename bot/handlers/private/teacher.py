@@ -27,7 +27,9 @@ async def __help(message: types.Message):
 
 async def __show(message: types.Message):
     teachers = models.utils.teacher.convert_to_list(select.teachers())
-    await message.answer(TEACHERS_NOT_FOUND)
+    if len(teachers) == 0:
+        await message.answer(TEACHERS_NOT_FOUND)
+        return
     for item in teachers:
         act_kb = InlineKeyboardMarkup(row_width=2)
         act_kb.row()
@@ -81,6 +83,12 @@ async def __add(message: types.Message):
 
 
 async def __name(message: types.Message, state: FSMContext):
+    # check unique name
+    if len(select.teacher_by(message.text)) != 0:
+        await message.answer("Already exist. /help")
+        await state.finish()
+        await Teacher.workspace.set()
+        return
     async with state.proxy() as data:
         data["name"] = message.text
         await Teacher.work_days.set()
