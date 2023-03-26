@@ -2,7 +2,7 @@ import mysql.connector as connector
 
 from bot.utils.env import Config
 
-from .exception import DBException
+from .exception import ConnectionError
 
 
 def connection():
@@ -14,6 +14,6 @@ def connection():
             database=Config.DATABASE
         )
     except connector.Error as err:
-        raise DBException("Connection", f"Connection error: {err}")
-    finally:
+        raise ConnectionError(err)
+    else:
         return con
