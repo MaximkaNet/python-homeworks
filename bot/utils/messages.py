@@ -57,3 +57,6 @@ EDIT_INSTRUCTION = "1.Copy next text.\n2.Paste.\n3.Edit and send."
 ACTION_CANCELED = "Action was canceled. /help"
 INCORRECT = "Incorrect answer!"
 HOMEWORK_DELETED = "Deleted."
+
+# middlewares
+SERVICE_UNAVAILABLE = "The service is not available. Please try again later./help"

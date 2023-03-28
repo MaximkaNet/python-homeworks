@@ -4,12 +4,13 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.utils.messages import WELLCOME_GROUP, HOMEWORKS_NOT_FOUND
+from bot.utils.messages import WELLCOME_GROUP, HOMEWORKS_NOT_FOUND, SERVICE_UNAVAILABLE
 from bot.callbacks.homework import show_homework_callback
 from bot.states.homowerk import Homework
 from bot.utils.env import Config
 from bot.filters import IsGroup, IsSupergroup
 from bot import models
+from bot.middlewares import check_connection
 
 from aiogram_calendar import dialog_cal_callback, DialogCalendar
 
@@ -25,6 +26,10 @@ async def __help(msg: types.Message) -> None:
 
 
 async def __homework(msg: types.Message) -> None:
+    # database availability check
+    if not check_connection():
+        await msg.answer(SERVICE_UNAVAILABLE)
+        return
     await Homework.show.set()
     ikb = InlineKeyboardMarkup()
     ikb.add(InlineKeyboardButton("Tomorrow", callback_data=show_homework_callback.new("tomorrow", "group")),

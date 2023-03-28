@@ -6,12 +6,13 @@ from aiogram.utils.callback_data import CallbackData
 from bot import models
 from bot.utils import convert_week
 from bot.filters import IsPrivate
-from bot.utils.messages import TEACHER_PANEL_WELLCOME, TCH_PANEL_COMMANDS, ACTION_CANCELED, TEACHER_ADDED, TEACHER_EDITED, TEACHER_PANEL_BYE, TEACHERS_NOT_FOUND
+from bot.utils.messages import TEACHER_PANEL_WELLCOME, TCH_PANEL_COMMANDS, ACTION_CANCELED, TEACHER_ADDED, TEACHER_EDITED, TEACHER_PANEL_BYE, TEACHERS_NOT_FOUND, SERVICE_UNAVAILABLE
 from bot.states.teacher import Teacher
 from bot.database.methods import select, delete, update, insert
 from bot.callbacks.teacher import show_teacher_actions, choice_teacher_callback
 from bot.helpers.selectweekdays import SelectWeekDays
 from bot.callbacks.selectweekdays import week_days_callback
+from bot.middlewares import check_connection
 
 import json
 
@@ -26,6 +27,10 @@ async def __help(message: types.Message) -> None:
 
 
 async def __show(message: types.Message) -> None:
+    # database availability check
+    if not check_connection():
+        await message.answer(SERVICE_UNAVAILABLE)
+        return
     teachers = models.utils.teacher.convert_to_list(select.teachers())
     if len(teachers) == 0:
         await message.answer(TEACHERS_NOT_FOUND)
@@ -41,6 +46,11 @@ async def __show(message: types.Message) -> None:
 
 
 async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
+    # database availability check
+    if not check_connection():
+        await callback_query.message.answer(SERVICE_UNAVAILABLE)
+        await Teacher.workspace.set()
+        return
     if callback_data["act"] == "EDIT":
         async with state.proxy() as proxy_data:
             proxy_data["name"] = callback_data["name"]
@@ -62,6 +72,10 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
 async def __process_actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
+        # database availability check
+        if not check_connection():
+            await callback_query.message.answer(SERVICE_UNAVAILABLE)
+            return
         async with state.proxy() as proxy_data:
             update.teacher(proxy_data["name"], days)
         act_kb = InlineKeyboardMarkup(row_width=2)
@@ -77,11 +91,20 @@ async def __process_actions_show(callback_query: types.CallbackQuery, callback_d
 
 
 async def __add(message: types.Message) -> None:
+    # database availability check
+    if not check_connection():
+        await message.answer(SERVICE_UNAVAILABLE)
+        return
     await message.answer("Type the teacher name:")
     await Teacher.name.set()
 
 
 async def __name(message: types.Message, state: FSMContext) -> None:
+    # database availability check
+    if not check_connection():
+        await message.answer(SERVICE_UNAVAILABLE)
+        await Teacher.workspace.set()
+        return
     # check unique name
     if len(select.teacher_by(message.text)) != 0:
         await message.answer("Already exist. /help")
@@ -99,6 +122,10 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
         if not len(days):
             await callback_query.message.edit_text(ACTION_CANCELED)
         else:
+            # database availability check
+            if not check_connection():
+                await callback_query.message.answer(SERVICE_UNAVAILABLE)
+                return
             async with state.proxy() as proxy_data:
                 name = proxy_data["name"]
                 insert.teacher(name, days)
@@ -107,6 +134,10 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
 
 
 async def __change_name(message: types.Message) -> None:
+    # database availability check
+    if not check_connection():
+        await message.answer(SERVICE_UNAVAILABLE)
+        return
     tch_table = models.utils.teacher.gen_table()
     if tch_table == None:
         await message.answer(TEACHERS_NOT_FOUND)
@@ -123,6 +154,11 @@ async def __process_select_change(callback_query: types.CallbackQuery, callback_
 
 
 async def __new_name(message: types.Message, state: FSMContext) -> None:
+    # database availability check
+    if not check_connection():
+        await message.answer(SERVICE_UNAVAILABLE)
+        await Teacher.workspace.set()
+        return
     async with state.proxy() as data:
         update.teacher(data["name"], new_name=message.text)
     await Teacher.workspace.set()
