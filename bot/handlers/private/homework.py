@@ -46,10 +46,10 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
         # find homeworks
-        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
-            selected_date)
         await callback_query.message.edit_text(
             wrapper, reply_markup=None)
+        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
+            selected_date)
         if len(show_list) == 0:
             wrapper = f"*{HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.edit_text(wrapper, reply_markup=None)
@@ -75,13 +75,13 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
     _selected, _date = await DialogCalendar().process_selection(callback_query, callback_data)
     if _selected:
         selected_date: date = _date.date()
-        # find homeworks
-        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
-            selected_date)
         # loading..
         wrapper = f"*Loading...*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
         await callback_query.message.edit_text(
             wrapper, reply_markup=None)
+        # find homeworks
+        show_list: list[models.Homework] = models.utils.homework.get_last_by_date(
+            selected_date)
         if len(show_list) == 0:
             wrapper = f"*{HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.edit_text(wrapper, reply_markup=None)
@@ -210,6 +210,11 @@ async def __process_teacher_show_last(callback_query: types.CallbackQuery, callb
     async with state.proxy() as proxy_data:
         _count_hw = proxy_data["show_last"]
     _teacher: str = callback_data["name"]
+    # loading...
+    wrapper = f"*Loading...*\n_Selected teacher: {_teacher}_"
+    await callback_query.message.edit_text(
+        wrapper, reply_markup=None)
+    # find homeworks
     _homeworks: list[models.Homework] = models.utils.homework.convert_to_list(
         select.homeworks(limit=_count_hw, author=_teacher))
     if len(_homeworks) == 0:
@@ -261,7 +266,7 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
             await Homework.workspace.set()
             return
         delete.homework(date, callback_data["author"])
-        await callback_query.message.edit_text(HOMEWORK_DELETED)
+        await callback_query.message.delete()
         await state.finish()
         await Homework.workspace.set()
 
@@ -326,6 +331,6 @@ def register_homework_handlers(dp: Dispatcher) -> None:
     dp.register_callback_query_handler(
         __process_teacher_show_last, choice_teacher_callback.filter(), state=Homework.show_last)
 
-    # show list actions
+    # show last actions
     dp.register_callback_query_handler(
         __process_actions_show_last, actions_show_all_callback.filter(), state=Homework.workspace)
