@@ -13,6 +13,7 @@ from bot.callbacks.teacher import show_teacher_actions, choice_teacher_callback
 from bot.helpers.selectweekdays import SelectWeekDays
 from bot.callbacks.selectweekdays import week_days_callback
 from bot.middlewares import check_connection
+from bot.utils import log
 
 import json
 
@@ -20,6 +21,7 @@ import json
 async def __teacher(message: types.Message) -> None:
     await Teacher.workspace.set()
     await message.answer(f"{TEACHER_PANEL_WELLCOME}\n\n{TCH_PANEL_COMMANDS}")
+    log(f"Open teacher panel", message.from_user.full_name)
 
 
 async def __help(message: types.Message) -> None:
@@ -31,6 +33,7 @@ async def __show(message: types.Message) -> None:
     if not check_connection():
         await message.answer(SERVICE_UNAVAILABLE)
         return
+    log(f"Get teachers", message.from_user.full_name)
     teachers = models.utils.teacher.convert_to_list(select.teachers())
     if len(teachers) == 0:
         await message.answer(TEACHERS_NOT_FOUND)
@@ -61,12 +64,13 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         delete_teacher = models.utils.teacher.convert_to_list(
             select.teacher_by(callback_data["name"]))
         if not len(delete_teacher):
-            # utils.debug(actions_show, "Obj not found.")
             await callback_query.message.delete()
             await Teacher.workspace.set()
             return
         delete.teacher(callback_data["name"])
         await callback_query.message.delete()
+        log(f"Deleted teacher [name={callback_data['name']}]",
+            callback_query.from_user.full_name)
 
 
 async def __process_actions_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
@@ -78,6 +82,8 @@ async def __process_actions_show(callback_query: types.CallbackQuery, callback_d
             return
         async with state.proxy() as proxy_data:
             update.teacher(proxy_data["name"], days)
+            log(f"Edited teacher work days",
+                callback_query.from_user.full_name)
         act_kb = InlineKeyboardMarkup(row_width=2)
         act_kb.row()
         act_kb.insert(InlineKeyboardButton(
@@ -130,6 +136,8 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
                 name = proxy_data["name"]
                 insert.teacher(name, days)
                 await callback_query.message.answer(TEACHER_ADDED)
+                log(f"Added a new teacher",
+                    callback_query.from_user.full_name)
         await Teacher.workspace.set()
 
 
@@ -161,6 +169,8 @@ async def __new_name(message: types.Message, state: FSMContext) -> None:
         return
     async with state.proxy() as data:
         update.teacher(data["name"], new_name=message.text)
+        log(f"New teacher name [{data['name']} -> {message.text}]",
+            message.from_user.full_name)
     await Teacher.workspace.set()
     await message.answer(TEACHER_EDITED)
 

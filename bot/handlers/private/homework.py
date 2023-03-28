@@ -12,6 +12,7 @@ from bot.utils.env import Config
 from bot.filters import IsPrivate
 from bot import models
 from bot.middlewares import check_connection
+from bot.utils import log
 
 from bot.database.methods import select, delete
 
@@ -27,6 +28,7 @@ async def __add_help(msg: types.Message) -> None:
 async def __homework(msg: types.Message) -> None:
     await Homework.workspace.set()
     await msg.answer(f"{HOMEWORK_PANEL_WELLCOME}\n\n{HW_PANEL_COMMANDS}")
+    log("Open homework panel", msg.from_user.full_name)
 
 
 async def __help(msg: types.Message) -> None:
@@ -42,6 +44,7 @@ async def __show(msg: types.Message) -> None:
 
 
 async def __process_show(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
+    log("Get homework", callback_query.from_user.full_name)
     if callback_data["act"] == "tomorrow":
         # database availability check
         if not check_connection():
@@ -174,8 +177,7 @@ async def __edit_homework(msg: types.Message, state: FSMContext) -> None:
         async with state.proxy() as proxy_data:
             homework: models.Homework = proxy_data["homework"]
             homework.update(temp_homework.tasks)
-            # utils.log(edit_homework, "Update homework",
-            #           user=f"{message.from_user.full_name} ({message.from_user.username})")
+            log("Edited homework", msg.from_user.full_name)
             await msg.answer(HOMEWORK_EDITED)
             await Homework.workspace.set()
             return
@@ -205,8 +207,7 @@ async def __get_work(msg: types.Message, state: FSMContext) -> None:
         if isValid:
             temp_obj.create(proxy_data["teacher"])
             await msg.answer(HOMEWORK_ADDED)
-            # utils.log(process_work, "Create homework",
-            #           user=f"{msg.from_user.full_name} ({msg.from_user.username})")
+            log("Added new homework", msg.from_user.full_name)
             await state.finish()
             await Homework.workspace.set()
         else:
@@ -251,7 +252,8 @@ async def __process_teacher_show_last(callback_query: types.CallbackQuery, callb
         select.homeworks(limit=_count_hw, author=_teacher))
     if len(_homeworks) == 0:
         await callback_query.message.edit_text(HOMEWORKS_NOT_FOUND)
-        await state.finish()
+        log(f"Show {_count_hw} homeworks",
+            callback_query.from_user.full_name)
         await Homework.workspace.set()
         return
     for i, item in enumerate(_homeworks):
@@ -269,7 +271,8 @@ async def __process_teacher_show_last(callback_query: types.CallbackQuery, callb
             await callback_query.message.edit_text(item.print(), reply_markup=actions)
             continue
         await callback_query.message.answer(item.print(), reply_markup=actions)
-    await state.finish()
+    log(f"Show {_count_hw} homeworks",
+        callback_query.from_user.full_name)
     await Homework.workspace.set()
 
 
@@ -297,12 +300,11 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
         delete_homework = models.utils.homework.get_by(
             callback_data["author"], date)
         if not delete_homework:
-            # utils.debug(process_homeworks_actions, "Obj not found.")
             await callback_query.message.delete()
-            await state.finish()
             await Homework.workspace.set()
             return
         delete.homework(date, callback_data["author"])
+        log(f"Deleted homework", callback_query.from_user.full_name)
         await callback_query.message.delete()
         await Homework.workspace.set()
 
@@ -330,12 +332,14 @@ async def __process_add_empty(callback_query: types.CallbackQuery, callback_data
         is_exist.parse_message("Homework: #*nothing*")
         is_exist.update(is_exist.tasks)
         await callback_query.message.edit_text(HOMEWORK_ADDED)
+        log(f"Added homework", callback_query.from_user.full_name)
         await Homework.workspace.set()
         return
     temp = models.Homework()
     temp.parse_message("Homework: #*nothing*")
     temp.create(callback_data["name"])
     await callback_query.message.edit_text(HOMEWORK_ADDED)
+    log(f"Added homework", callback_query.from_user.full_name)
     await Homework.workspace.set()
 
 
