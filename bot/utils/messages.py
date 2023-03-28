@@ -33,7 +33,9 @@ TCH_PANEL_COMMANDS = """Commands:
 HW_PANEL_COMMANDS = """Commands:
 /add - add a new homework
 /show - show a homework
-/showlast - show homeworks. You can write the command /showlast<count>
+/showlast - show homeworks. 
+   You can write the command */showlast<count>*
+/addempty - add empty homework
 /close - exit from managment panel"""
 ADD_TASK = """
 Write your homework in this format:

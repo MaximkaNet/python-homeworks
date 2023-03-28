@@ -307,6 +307,38 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
         await Homework.workspace.set()
 
 
+async def __add_empty(msg: types.Message, state: FSMContext) -> None:
+    # database availability check
+    if not check_connection():
+        await msg.answer(SERVICE_UNAVAILABLE)
+        await Homework.workspace.set()
+        return
+    await Homework.teacher_empty_hw.set()
+    tch_table = models.utils.teacher.gen_table()
+    if tch_table != None:
+        await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
+        return
+    await msg.answer(TEACHERS_NOT_FOUND)
+    await Homework.workspace.set()
+
+
+async def __process_add_empty(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    # check existed homework
+    is_exist = models.utils.homework.get_by(
+        callback_data["name"], date.today())
+    if is_exist:
+        is_exist.parse_message("Homework: #*nothing*")
+        is_exist.update(is_exist.tasks)
+        await callback_query.message.edit_text(HOMEWORK_ADDED)
+        await Homework.workspace.set()
+        return
+    temp = models.Homework()
+    temp.parse_message("Homework: #*nothing*")
+    temp.create(callback_data["name"])
+    await callback_query.message.edit_text(HOMEWORK_ADDED)
+    await Homework.workspace.set()
+
+
 async def __close(msg: types.Message, state: FSMContext) -> None:
     await msg.answer(HOMEWORK_PANEL_BYE)
     await state.finish()
@@ -350,6 +382,9 @@ def register_homework_handlers(dp: Dispatcher) -> None:
     # edit homework
     dp.register_message_handler(__edit_homework, state=Homework.edit)
 
+    # add empty homework
+    dp.register_message_handler(
+        __add_empty, IsPrivate(), commands=['addempty'], state=Homework.workspace)
     # callback handlers
 
     dp.register_callback_query_handler(
@@ -370,3 +405,7 @@ def register_homework_handlers(dp: Dispatcher) -> None:
     # show last actions
     dp.register_callback_query_handler(
         __process_actions_show_last, actions_show_all_callback.filter(), state=Homework.workspace)
+
+    # select teacher for adding empty homework
+    dp.register_callback_query_handler(
+        __process_add_empty, choice_teacher_callback.filter(), state=Homework.teacher_empty_hw)
