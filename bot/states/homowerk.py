@@ -9,6 +9,6 @@ class Homework(StatesGroup):
     homework = State()
     teacher = State()  # select a teacher
     work = State()  # add homework
-    add_date = State()
+    added_date = State()
     edit = State()
     edit_question = State()

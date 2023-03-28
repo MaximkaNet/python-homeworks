@@ -4,7 +4,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext, filters
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED, HOMEWORK_DELETED
+from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED
 from bot.callbacks.homework import show_homework_callback, actions_show_all_callback
 from bot.callbacks.teacher import choice_teacher_callback
 from bot.states.homowerk import Homework
@@ -53,7 +53,6 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         if len(show_list) == 0:
             wrapper = f"*{HOMEWORKS_NOT_FOUND}*\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.edit_text(wrapper, reply_markup=None)
-            await state.finish()
             await Homework.workspace.set()
             return
         # print results
@@ -63,11 +62,9 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         for show_item in range(1, len(show_list)):
             wrapper = f"{show_item.print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.answer(wrapper)
-        await state.finish()
         await Homework.workspace.set()
     elif callback_data["act"] == "another":
         await callback_query.message.edit_reply_markup(await DialogCalendar().start_calendar())
-        await state.finish()
         await Homework.workspace.set()
 
 
@@ -102,26 +99,25 @@ async def __add(msg: types.Message, state: FSMContext) -> None:
         await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
         return
     await msg.answer(TEACHERS_NOT_FOUND)
-    await state.finish()
     await Homework.workspace.set()
 
 
 async def __process_teacher(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     async with state.proxy() as proxy_data:
         proxy_data["teacher"] = callback_data["name"]
-        proxy_data["add_date"] = date.today()
-        selected_teacher = f"{SELECT_TEACHER} _{proxy_data['teacher']}_"
-        await callback_query.message.edit_text(selected_teacher)
+        proxy_data["added_date"] = date.today()
+        SELECTED_TEACHER = f"{SELECT_TEACHER} _{proxy_data['teacher']}_"
+        await callback_query.message.edit_text(SELECTED_TEACHER)
         # check existed homework
         is_exist = models.utils.homework.get_by(
-            proxy_data["teacher"], proxy_data["add_date"])
+            proxy_data["teacher"], proxy_data["added_date"])
         if is_exist:
             proxy_data["homework"] = is_exist
             await Homework.edit_question.set()
             await callback_query.message.edit_text(
-                f"{selected_teacher}\n\n{HOMEWORK_UPDATE_QUESTION}")
+                f"{SELECTED_TEACHER}\n\n{HOMEWORK_UPDATE_QUESTION}")
             return
-        await callback_query.message.edit_text(f"{selected_teacher}\n{ADD_TASK}")
+        await callback_query.message.edit_text(f"{SELECTED_TEACHER}\n{ADD_TASK}")
         await Homework.work.set()
 
 
@@ -129,9 +125,9 @@ async def __edit_homework_question(msg: types.Message, state: FSMContext) -> Non
     if msg.text.lower() == "yes":
         async with state.proxy() as proxy_data:
             homework: models.Homework = proxy_data["homework"]
-            selected_teacher = f"{SELECT_TEACHER} _{proxy_data['teacher']}_"
+            SELECTED_TEACHER = f"{SELECT_TEACHER} _{proxy_data['teacher']}_"
             if homework:
-                await msg.answer(f"{selected_teacher}\n{ADD_TASK}")
+                await msg.answer(f"{SELECTED_TEACHER}\n{ADD_TASK}")
                 await msg.answer(homework.convert_tasks())
                 await Homework.edit.set()
     else:
@@ -246,13 +242,13 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
         async with state.proxy() as proxy_data:
             date = datetime.strptime(
                 callback_data["date"], Config.DATE_FORMAT).date()
-            _homework: models.Homework = models.utils.homework.get_by(
+            getted_homework: models.Homework = models.utils.homework.get_by(
                 callback_data["author"], date)
-            proxy_data["homework"] = _homework
-            selected_teacher = f"{SELECT_TEACHER} _{callback_data['author']}_"
-            if _homework:
-                await callback_query.message.answer(f"{selected_teacher}\n{ADD_TASK}")
-                await callback_query.message.answer(_homework.convert_tasks())
+            proxy_data["homework"] = getted_homework
+            SELECTED_TEACHER = f"{SELECT_TEACHER} _{callback_data['author']}_"
+            if getted_homework:
+                await callback_query.message.answer(f"{SELECTED_TEACHER}\n{ADD_TASK}")
+                await callback_query.message.answer(getted_homework.convert_tasks())
                 await Homework.edit.set()
     else:
         date = datetime.strptime(
@@ -267,7 +263,6 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
             return
         delete.homework(date, callback_data["author"])
         await callback_query.message.delete()
-        await state.finish()
         await Homework.workspace.set()
 
 

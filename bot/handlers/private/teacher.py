@@ -53,7 +53,6 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         if not len(delete_teacher):
             # utils.debug(actions_show, "Obj not found.")
             await callback_query.message.delete()
-            await state.finish()
             await Teacher.workspace.set()
             return
         delete.teacher(callback_data["name"])
@@ -86,7 +85,6 @@ async def __name(message: types.Message, state: FSMContext) -> None:
     # check unique name
     if len(select.teacher_by(message.text)) != 0:
         await message.answer("Already exist. /help")
-        await state.finish()
         await Teacher.workspace.set()
         return
     async with state.proxy() as data:
@@ -105,7 +103,6 @@ async def __process_select_days(callback_query: types.CallbackQuery, callback_da
                 name = proxy_data["name"]
                 insert.teacher(name, days)
                 await callback_query.message.answer(TEACHER_ADDED)
-        await state.finish()
         await Teacher.workspace.set()
 
 
@@ -128,7 +125,6 @@ async def __process_select_change(callback_query: types.CallbackQuery, callback_
 async def __new_name(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         update.teacher(data["name"], new_name=message.text)
-    await state.finish()
     await Teacher.workspace.set()
     await message.answer(TEACHER_EDITED)
 
