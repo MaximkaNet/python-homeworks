@@ -29,116 +29,47 @@ class Task:
 
     def string_parser(self, str: str):
         str = trim(str)
+        # find source
         end_source_index = str.find(":")
         self.source = str[0:end_source_index]
+
         self.exercises = []
         self.sentences = []
+
+        separators = ["s.", "#"]
+        data_vars = {
+            "s.": self.exercises,
+            "#": self.sentences
+        }
+        # find records
         start_index = end_source_index
         str_length = len(str)
-        while True:
-            case1 = str.find("s.", start_index)
-            case2 = str.find("#", start_index)
-            if case1 == -1 and case2 == -1:
+        start_pos, sp = Task.find_closest_separator(
+            separators, str, start_index)
+        while start_index != str_length:
+            # closest start separator
+            end_pos, end_sp = Task.find_closest_separator(
+                separators, str, start_pos + len(sp))
+            if end_pos == -1:
+                data_vars[sp].append(
+                    str[start_pos + len(sp):str_length].strip())
                 break
-            if case1 != -1 and case2 != -1:
-                if case1 < case2:  # find exercises
-                    end_case1 = str.find("s.", case1 + 2)
-                    end_case2 = str.find("#", case1 + 2)
-                    # end of string
-                    if end_case1 == -1 and end_case2 == -1:
-                        self.exercises.append(str[case1 + 2:str_length])
-                        break
-
-                    if end_case1 != -1 and end_case2 != -1:
-                        if end_case1 < end_case2:
-                            self.exercises.append(
-                                str[case1 + 2: end_case1 - 1])
-                            start_index = end_case1 - 1
-                        else:
-                            self.exercises.append(
-                                str[case1 + 2: end_case2 - 1])
-                            start_index = end_case2 - 1
-                    elif end_case1 != -1:
-                        self.exercises.append(
-                            str[case1 + 2: end_case1 - 1])
-                        start_index = end_case1 - 1
-                    elif end_case2 != -1:
-                        self.exercises.append(
-                            str[case1 + 2: end_case2 - 1])
-                        start_index = end_case2 - 1
-                else:  # find sentences
-                    end_case1 = str.find("s.", case2 + 1)
-                    end_case2 = str.find("#", case2 + 1)
-                    if end_case1 == -1 and end_case2 == -1:
-                        self.sentences.append(str[case2 + 1: str_length])
-                        break
-
-                    if end_case1 != -1 and end_case2 != -1:
-                        if end_case1 < end_case2:
-                            self.sentences.append(
-                                str[case2 + 1: end_case1 - 1])
-                            start_index = end_case1 - 1
-                        else:
-                            self.sentences.append(
-                                str[case2 + 1: end_case2 - 1])
-                            start_index = end_case2 - 1
-                    elif end_case1 != -1:
-                        self.sentences.append(
-                            str[case2 + 1: end_case1 - 1])
-                        start_index = end_case1 - 1
-                    elif end_case2 != -1:
-                        self.sentences.append(
-                            str[case2 + 1: end_case2 - 1])
-                        start_index = end_case2 - 1
-            elif case1 != -1:  # exercises
-                end_case1 = str.find("s.", case1 + 2)
-                end_case2 = str.find("#", case1 + 2)
-                if end_case1 == -1 and end_case2 == -1:
-                    self.exercises.append(str[case1 + 2: str_length])
-                    break
-
-                if end_case1 != -1 and end_case2 != -1:
-                    if end_case1 < end_case2:
-                        self.exercises.append(
-                            str[case1 + 2: end_case1 - 1])
-                        start_index = end_case1 - 1
-                    else:
-                        self.exercises.append(
-                            str[case1 + 2: end_case2 - 1])
-                        start_index = end_case2 - 1
-                elif end_case1 != -1:
-                    self.exercises.append(
-                        str[case1 + 2: end_case1 - 1])
-                    start_index = end_case1 - 1
-                elif end_case2 != -1:
-                    self.exercises.append(
-                        str[case1 + 2: end_case2 - 1])
-                    start_index = end_case2 - 1
-            elif case2 != -1:  # sentences
-                end_case1 = str.find("s.", case2 + 1)
-                end_case2 = str.find("#", case2 + 1)
-                if end_case1 == -1 and end_case2 == -1:
-                    self.sentences.append(str[case2 + 1: str_length])
-                    break
-
-                if end_case1 != -1 and end_case2 != -1:
-                    if end_case1 < end_case2:
-                        self.sentences.append(
-                            str[case2 + 1: end_case1 - 1])
-                        start_index = end_case1 - 1
-                    else:
-                        self.sentences.append(
-                            str[case2 + 1: end_case2 - 1])
-                        start_index = end_case2 - 1
-                elif end_case1 != -1:
-                    self.sentences.append(
-                        str[case2 + 1: end_case1 - 1])
-                    start_index = end_case1 - 1
-                elif end_case2 != -1:
-                    self.sentences.append(
-                        str[case2 + 1: end_case2 - 1])
-                    start_index = end_case2 - 1
+            # separators
+            data_vars[sp].append(str[start_pos + len(sp):end_pos].strip())
+            start_pos = end_pos
+            sp = end_sp
+            start_index = end_pos
         return self
+
+    def find_closest_separator(_separators: list[str], _str: str, _start_index: int = 0) -> tuple[int, str]:
+        sp = ""
+        min_pos = len(_str)
+        for item in _separators:
+            sp_pos = _str.find(item, _start_index)
+            if 0 < sp_pos < min_pos:
+                min_pos = sp_pos
+                sp = item
+        return (min_pos, sp) if sp != "" else (-1, None)
     # validator
 
     def validate_message(str: str) -> bool:
