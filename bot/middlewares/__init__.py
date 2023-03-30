@@ -1,1 +1,2 @@
 from .check_connection_middleware import check_connection
+from .check_tables_middleware import check_tables

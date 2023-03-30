@@ -1,11 +1,13 @@
 from .connect import connection
 from .exception import ConnectionError, SelectError, InsertError, UpdateError, DeleteError, AggregateError
 import mysql.connector as connector
+from bot.middlewares import check_tables
 
 
 def select(sql: str, val: tuple = None) -> list:
     try:
         con = connection()
+        check_tables(con)
         cursor = con.cursor()
         cursor.execute(sql, val)
         records = cursor.fetchall()
@@ -20,6 +22,7 @@ def select(sql: str, val: tuple = None) -> list:
 def insert(sql: str, val: tuple | list[tuple] = None) -> int:
     try:
         con = connection()
+        check_tables(con)
         cursor = con.cursor()
         if isinstance(val, tuple):
             cursor.execute(sql, val)
@@ -39,6 +42,7 @@ def insert(sql: str, val: tuple | list[tuple] = None) -> int:
 def update(sql: str, val: tuple = None) -> None:
     try:
         con = connection()
+        check_tables(con)
         cursor = con.cursor()
         cursor.execute(sql, val)
         con.commit()
@@ -51,6 +55,7 @@ def update(sql: str, val: tuple = None) -> None:
 def delete(sql: str, val: tuple = None) -> None:
     try:
         con = connection()
+        check_tables(con)
         cursor = con.cursor()
         cursor.execute(sql, val)
         con.commit()
@@ -63,6 +68,7 @@ def delete(sql: str, val: tuple = None) -> None:
 def aggregate(sql, val: tuple = None) -> list:
     try:
         con = connection()
+        check_tables(con)
         cursor = con.cursor()
         cursor.execute(sql, val)
     except connector.Error as err:
