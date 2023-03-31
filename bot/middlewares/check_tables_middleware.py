@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS `homeworks` (
 """
 HOMEWORKS_ATTACHMENTS = """
 CREATE TABLE IF NOT EXISTS `attachments` (
-  `name` varchar(40) NOT NULL UNIQUE,
+  `id` varchar(40) NOT NULL UNIQUE,
+  `name` varchar(70) NOT NULL,
   `file` mediumblob NOT NULL,
   `file_type` varchar(40) NOT NULL,
   `homework_id` int NOT NULL,
