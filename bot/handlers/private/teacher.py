@@ -81,9 +81,16 @@ async def __process_actions_show(callback_query: types.CallbackQuery, callback_d
             await callback_query.message.answer(SERVICE_UNAVAILABLE)
             return
         async with state.proxy() as proxy_data:
-            update.teacher(proxy_data["name"], days)
-            log(f"Edited teacher work days",
-                callback_query.from_user.full_name)
+            if len(days) != 0:
+                update.teacher(proxy_data["name"], days)
+                log(f"Edited teacher work days",
+                    callback_query.from_user.full_name)
+            else:
+                log(f"Work days is empty",
+                    callback_query.from_user.full_name)
+                days = models.utils.teacher.convert_to_list(
+                    select.teacher_by(proxy_data["name"]))[0].get_work_days()
+        # make keyboard
         act_kb = InlineKeyboardMarkup(row_width=2)
         act_kb.row()
         act_kb.insert(InlineKeyboardButton(
@@ -125,7 +132,7 @@ async def __name(message: types.Message, state: FSMContext) -> None:
 async def __process_select_days(callback_query: types.CallbackQuery, callback_data: CallbackData, state: FSMContext) -> None:
     selected, days = await SelectWeekDays().process_select(callback_query, callback_data)
     if selected:
-        if not len(days):
+        if len(days) == 0:
             await callback_query.message.edit_text(ACTION_CANCELED)
         else:
             # database availability check
