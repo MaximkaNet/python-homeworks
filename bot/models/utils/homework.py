@@ -9,6 +9,7 @@ from aiogram.types import Message, InputFile, InputMediaPhoto
 import logging
 from datetime import date
 from io import BytesIO
+from uuid import uuid4
 
 
 def convert_to_list(tuples: list[tuple]) -> list[models.Homework]:
@@ -72,19 +73,24 @@ async def save_file(msg: Message, homework: models.Homework) -> None:
     # find and save files
     file_id = None
     file_type = "document"
+    file_name = ""
     if len(msg.photo) != 0:
         file_id = msg.photo[-1].file_id
         file_type = "photo"
-    elif msg.document != None:
-        file_id = msg.document.file_id
-        file_type = "document"
-    if msg.animation != None:
+        file_name = uuid4().hex
+    elif msg.animation != None:
         file_id = msg.animation.file_id
         file_type = "animation"
+        file_name = msg.animation.file_name
+    if msg.document != None:
+        file_id = msg.document.file_id
+        file_type = "document"
+        file_name = msg.document.file_name
+
     # add into state attach files
     file_path = await get_file_path(Config.TOKEN, file_id)
-    name, extension, blob = await get_file(Config.TOKEN, file_path=file_path)
-    homework.add_attachment(f"{name}.{extension}", blob, file_type)
+    blob = await get_file(Config.TOKEN, file_path=file_path)
+    homework.add_attachment(file_name, blob, file_type)
 
 
 def get_files(homework_id: int) -> list:
@@ -94,9 +100,9 @@ def get_files(homework_id: int) -> list:
     animations = []
     for row in selected_files:
         if row[2] == "photo":
-            photos.append(InputMediaPhoto(InputFile(BytesIO(row[1]), row[0])))
+            photos.append(InputFile(BytesIO(row[1]), row[0]))
         elif row[2] == "animation":
-            animations.append(InputFile(row[1], row[0]))
+            animations.append(InputFile(BytesIO(row[1]), row[0]))
         else:
-            files.append(InputFile(row[1], row[0]))
+            files.append(InputFile(BytesIO(row[1]), row[0]))
     return (photos, files, animations)

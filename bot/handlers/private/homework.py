@@ -141,9 +141,9 @@ async def __add(msg: types.Message, state: FSMContext) -> None:
     if not check_connection():
         await msg.answer(SERVICE_UNAVAILABLE)
         return
-    await Homework.teacher.set()
     tch_table = models.utils.teacher.gen_table()
     if tch_table != None:
+        await Homework.teacher.set()
         await msg.answer(SELECT_TEACHER, reply_markup=tch_table)
         return
     await msg.answer(TEACHERS_NOT_FOUND)
@@ -185,6 +185,7 @@ async def __edit_homework_question(msg: types.Message, state: FSMContext) -> Non
                 await Homework.edit.set()
     else:
         await msg.answer(ACTION_CANCELED)
+        await state.finish()
         await Homework.workspace.set()
 
 
@@ -196,6 +197,7 @@ async def __edit_homework(msg: types.Message, state: FSMContext) -> None:
         return
     if msg.text == "/cancel":
         await msg.answer(ACTION_CANCELED)
+        await state.finish()
         await Homework.workspace.set()
         return
     elif msg.text == "/hadd":
@@ -209,7 +211,9 @@ async def __edit_homework(msg: types.Message, state: FSMContext) -> None:
         isValid = temp_homework.parse_message(msg.text)
         if isValid:
             temp_homework.update()
+            temp_homework.delete_attachment()
             await Homework.attachments.set()
+            await msg.answer(ADD_ATTACHMENTS)
             return
         else:
             await msg.answer(INCORRECT)
@@ -332,12 +336,17 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
                 callback_data["date"], Config.DATE_FORMAT).date()
             getted_homework: models.Homework = models.utils.homework.get_by(
                 callback_data["author"], date)
-            proxy_data["homework"] = getted_homework
             SELECTED_TEACHER = f"{SELECT_TEACHER} _{callback_data['author']}_"
             if getted_homework:
+                proxy_data["homework"] = getted_homework
+                proxy_data["added_date"] = date
+                proxy_data["teacher"] = callback_data["author"]
                 await callback_query.message.answer(f"{SELECTED_TEACHER}\n{ADD_TASK}")
                 await callback_query.message.answer(getted_homework.convert_tasks())
                 await Homework.edit.set()
+                return
+            await state.finish()
+            await Homework.workspace.set()
     else:
         date = datetime.strptime(
             callback_data["date"], Config.DATE_FORMAT).date()
@@ -350,6 +359,7 @@ async def __process_actions_show_last(callback_query: types.CallbackQuery, callb
         delete.homework(date, callback_data["author"])
         log(f"Deleted homework", callback_query.from_user.full_name)
         await callback_query.message.delete()
+        await state.finish()
         await Homework.workspace.set()
 
 
@@ -374,7 +384,8 @@ async def __process_add_empty(callback_query: types.CallbackQuery, callback_data
         callback_data["name"], date.today())
     if is_exist:
         is_exist.parse_message("Homework: #*nothing*")
-        is_exist.update(is_exist.tasks)
+        is_exist.update()
+        is_exist.delete_attachment()
         await callback_query.message.edit_text(HOMEWORK_ADDED)
         log(f"Added homework", callback_query.from_user.full_name)
         await Homework.workspace.set()
