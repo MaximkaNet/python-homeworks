@@ -44,6 +44,10 @@ _<source>: s.<page> (numbers) # something..._
 You can learn more about adding a task with the command /addh
 You can /cancel this action
 """
+ADD_ATTACHMENTS = """
+How you can send me files/photos.
+Type /finish to complete the addition of homework.
+"""
 TEACHER_PANEL_WELLCOME = "Wellcome to *teacher* managment panel."
 HOMEWORK_PANEL_WELLCOME = "Wellcome to *homework* managment panel."
 HOMEWORK_PANEL_BYE = "*Homework* managment panel was closed. /help"

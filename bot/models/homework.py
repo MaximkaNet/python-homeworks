@@ -10,14 +10,16 @@ import json
 
 
 class Homework:
-    def __init__(self, _date: date = None, _update: date = None, _author: str = "", _tasks: list = []) -> None:
+    def __init__(self, _date: date = None, _update: date = None, _author: str = "", _tasks: list = [], _attachments: list | None = None) -> None:
         self.date: date = _date
         self.update_date: date = _date if _update == None else _update
         self.author: str = _author
         self.tasks: list[models.Task] = _tasks
+        self.attachments: list = _attachments
 
-    def update(self, tasks: list) -> None:
-        self.tasks = tasks
+    def update(self, tasks: list = None) -> None:
+        if tasks != None:
+            self.tasks = tasks
         self.update_date = date.today()
         update.homework_by(self.author, self.date, self.update_date)
         homework_id = select.homework_id(self.author, self.date)
@@ -25,6 +27,16 @@ class Homework:
         for task in self.tasks:
             insert.task(task.source, json.dumps(
                 task.exercises), json.dumps(task.sentences), homework_id)
+
+    def add_attachment(self, name: str, blob, type: str = "photo") -> None:
+        homework_id = select.homework_id(self.author, self.date)
+        insert.homework_file(name, blob, type, homework_id)
+
+    def delete_attachment(self, name: str = "", date: date = None):
+        if name != "" and date != None:
+            delete.attchments(select.homework_id(name, date))
+        else:
+            delete.attchments(select.homework_id(self.author, self.date))
 
     def create(self, author: str) -> None:
         self.date = date.today()

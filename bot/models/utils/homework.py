@@ -3,9 +3,12 @@ from bot.utils.env import Config
 from bot.models.utils import task, teacher
 import bot.database.methods.count as count
 import bot.database.methods.select as select
+from bot.utils.get import get_file_path, get_file
 
+from aiogram.types import Message, InputFile, InputMediaPhoto
 import logging
 from datetime import date
+from io import BytesIO
 
 
 def convert_to_list(tuples: list[tuple]) -> list[models.Homework]:
@@ -63,3 +66,37 @@ def get_by(name: str, date: date) -> models.Homework:
     if len(homeworks) == 0:
         return False
     return homeworks[0]
+
+
+async def save_file(msg: Message, homework: models.Homework) -> None:
+    # find and save files
+    file_id = None
+    file_type = "document"
+    if len(msg.photo) != 0:
+        file_id = msg.photo[-1].file_id
+        file_type = "photo"
+    elif msg.document != None:
+        file_id = msg.document.file_id
+        file_type = "document"
+    if msg.animation != None:
+        file_id = msg.animation.file_id
+        file_type = "animation"
+    # add into state attach files
+    file_path = await get_file_path(Config.TOKEN, file_id)
+    name, extension, blob = await get_file(Config.TOKEN, file_path=file_path)
+    homework.add_attachment(f"{name}.{extension}", blob, file_type)
+
+
+def get_files(homework_id: int) -> list:
+    selected_files = select.homework_files(homework_id)
+    files = []
+    photos = []
+    animations = []
+    for row in selected_files:
+        if row[2] == "photo":
+            photos.append(InputMediaPhoto(InputFile(BytesIO(row[1]), row[0])))
+        elif row[2] == "animation":
+            animations.append(InputFile(row[1], row[0]))
+        else:
+            files.append(InputFile(row[1], row[0]))
+    return (photos, files, animations)

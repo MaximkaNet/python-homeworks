@@ -4,7 +4,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext, filters
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED, SERVICE_UNAVAILABLE
+from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED, SERVICE_UNAVAILABLE, ADD_ATTACHMENTS
 from bot.callbacks.homework import show_homework_callback, actions_show_all_callback
 from bot.callbacks.teacher import choice_teacher_callback
 from bot.states.homowerk import Homework
@@ -13,6 +13,7 @@ from bot.filters import IsPrivate
 from bot import models
 from bot.middlewares import check_connection
 from bot.utils import log
+from bot.models.utils.homework import save_file
 
 from bot.database.methods import select, delete
 
@@ -69,9 +70,17 @@ async def __process_show(callback_query: types.CallbackQuery, callback_data: Cal
         wrapper = f"{show_list[0].print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
         await callback_query.message.edit_text(wrapper,
                                                reply_markup=None)
+        # print attachments
+        homework_id = select.homework_id(
+            show_list[0].author, show_list[0].date)
+        await __show_attachments(callback_query.message, homework_id)
+
         for show_item in range(1, len(show_list)):
             wrapper = f"{show_item.print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.answer(wrapper)
+            # print attachments
+            homework_id = select.homework_id(show_item.author, show_item.date)
+            await __show_attachments(callback_query.message, homework_id)
         await Homework.workspace.set()
     elif callback_data["act"] == "another":
         await callback_query.message.edit_reply_markup(await DialogCalendar().start_calendar())
@@ -101,9 +110,30 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
         wrapper = f"{show_list[0].print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
         await callback_query.message.edit_text(wrapper,
                                                reply_markup=None)
+        # print attachments
+        homework_id = select.homework_id(
+            show_list[0].author, show_list[0].date)
+        await __show_attachments(callback_query.message, homework_id)
+
         for show_item in range(1, len(show_list)):
             wrapper = f"{show_item.print()}\n_Selected date: {selected_date.strftime(Config.DATE_FORMAT)}_"
             await callback_query.message.answer(wrapper)
+            # print attachments
+            homework_id = select.homework_id(show_item.author, show_item.date)
+            await __show_attachments(callback_query.message, homework_id)
+
+
+async def __show_attachments(msg: types.Message, homework_id: int) -> None:
+    photos, files, animations = models.utils.homework.get_files(homework_id)
+    if len(photos) != 0:
+        for item in photos:
+            await msg.answer_photo(item)
+    if len(files) != 0:
+        for item in files:
+            await msg.answer_document(item)
+    if len(animations) != 0:
+        for item in animations:
+            await msg.answer_animation(item)
 
 
 async def __add(msg: types.Message, state: FSMContext) -> None:
@@ -171,20 +201,20 @@ async def __edit_homework(msg: types.Message, state: FSMContext) -> None:
     elif msg.text == "/hadd":
         await msg.answer(HELP_ADD)
         return
-    temp_homework = models.Homework()
-    isValid = temp_homework.parse_message(msg.text)
-    if isValid:
-        async with state.proxy() as proxy_data:
-            homework: models.Homework = proxy_data["homework"]
-            homework.update(temp_homework.tasks)
-            log("Edited homework", msg.from_user.full_name)
-            await msg.answer(HOMEWORK_EDITED)
-            await Homework.workspace.set()
+    async with state.proxy() as proxy_data:
+        temp_homework = models.Homework(
+            proxy_data["added_date"],
+            proxy_data["added_date"],
+            proxy_data["teacher"])
+        isValid = temp_homework.parse_message(msg.text)
+        if isValid:
+            temp_homework.update()
+            await Homework.attachments.set()
             return
-    else:
-        await msg.answer(INCORRECT)
-        await msg.answer(ADD_TASK)
-        return
+        else:
+            await msg.answer(INCORRECT)
+            await msg.answer(ADD_TASK)
+            return
 
 
 async def __get_work(msg: types.Message, state: FSMContext) -> None:
@@ -206,14 +236,28 @@ async def __get_work(msg: types.Message, state: FSMContext) -> None:
         isValid = temp_obj.parse_message(msg.text)
         if isValid:
             temp_obj.create(proxy_data["teacher"])
-            await msg.answer(HOMEWORK_ADDED)
-            log("Added new homework", msg.from_user.full_name)
-            await state.finish()
-            await Homework.workspace.set()
+            proxy_data["homework"] = temp_obj
+            await msg.answer(ADD_ATTACHMENTS)
+            await Homework.attachments.set()
         else:
             await msg.answer(INCORRECT)
             await msg.answer(ADD_TASK)
             await Homework.work.set()
+
+
+async def __get_files(msg: types.Message, state: FSMContext) -> None:
+    if msg.text == "/finish":  # check end of add files
+        async with state.proxy() as proxy_data:
+            await msg.answer(HOMEWORK_ADDED)
+            log("Added new homework", msg.from_user.full_name)
+            await state.finish()
+            await Homework.workspace.set()
+        return
+
+    # find and save files
+    async with state.proxy() as proxy_data:
+        homework: models.Homework = proxy_data["homework"]
+        await save_file(msg, homework)
 
 
 async def __show_last(msg: types.Message, regexp_command, state: FSMContext) -> None:
@@ -389,8 +433,16 @@ def register_homework_handlers(dp: Dispatcher) -> None:
     # add empty homework
     dp.register_message_handler(
         __add_empty, IsPrivate(), commands=['addempty'], state=Homework.workspace)
+
+    # attach files
+    dp.register_message_handler(
+        __get_files, IsPrivate(),
+        content_types=['photo', 'document', 'text'],
+        state=Homework.attachments
+    )
     # callback handlers
 
+    # show homework by date
     dp.register_callback_query_handler(
         __process_show, show_homework_callback.filter(), state=Homework.show)
 

@@ -34,6 +34,17 @@ def homework(date: date, update: date, author_id: int) -> int:
         return res
 
 
+def homework_file(name: str, blob, type: str, homework_id: int) -> None:
+    sql = "INSERT INTO `attachments`(`name`, `file`, `file_type`, `homework_id`) VALUES (%s, %s, %s, %s)"
+    val = (name, blob, type, homework_id)
+    try:
+        res = insert(sql, val)
+    except ConnectionError as err:
+        logging.critical(err)
+    except DBException as err:
+        logging.critical(err)
+
+
 def task(source: str, exercises: str, sentences: str, homework_id: int) -> int:
     sql = "INSERT INTO `tasks`(`source`, `exercises`, `sentences`, `homework_id`) VALUES (%s, %s, %s, %s)"
     val = (source, exercises, sentences, homework_id)

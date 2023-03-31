@@ -96,6 +96,20 @@ def homework_by(author: str, date: date) -> list:
         return res
 
 
+def homework_files(id: int):
+    sql = f"SELECT * FROM `attachments` WHERE `homework_id` = {id}"
+    try:
+        res = select(sql)
+    except ConnectionError as err:
+        logging.critical(err)
+        return None
+    except DBException as err:
+        logging.critical(err)
+        return None
+    else:
+        return res
+
+
 def homework_id(author: str, date: date) -> int:
     sql = "SELECT `homeworks`.`id` FROM `homeworks` INNER JOIN `teachers` ON `homeworks`.`author_id` = `teachers`.`id` WHERE `homeworks`.`date` = %s AND `teachers`.`name` = %s"
     val = (date.strftime(DATE_FORMAT), author)
