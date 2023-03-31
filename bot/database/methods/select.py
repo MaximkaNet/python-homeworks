@@ -97,7 +97,7 @@ def homework_by(author: str, date: date) -> list:
 
 
 def homework_files(id: int):
-    sql = f"SELECT * FROM `attachments` WHERE `homework_id` = {id}"
+    sql = f"SELECT `name`, `file`, `file_type` FROM `attachments` WHERE `homework_id` = {id}"
     try:
         res = select(sql)
     except ConnectionError as err:

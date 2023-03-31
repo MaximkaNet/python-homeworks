@@ -5,6 +5,7 @@ from datetime import date
 
 from bot.database.engine.exception import DBException, ConnectionError
 import logging
+from uuid import uuid4
 
 
 def teacher(name: str, work_days: list[int]) -> None:
@@ -34,9 +35,9 @@ def homework(date: date, update: date, author_id: int) -> int:
         return res
 
 
-def homework_file(name: str, blob, type: str, homework_id: int) -> None:
-    sql = "INSERT INTO `attachments`(`name`, `file`, `file_type`, `homework_id`) VALUES (%s, %s, %s, %s)"
-    val = (name, blob, type, homework_id)
+def homework_file(name: str, blob: bytes, type: str, homework_id: int) -> None:
+    sql = "INSERT INTO `attachments`(`id`, `name`, `file`, `file_type`, `homework_id`) VALUES (%s, %s, %s, %s, %s)"
+    val = (uuid4().hex, name, blob, type, homework_id)
     try:
         res = insert(sql, val)
     except ConnectionError as err:

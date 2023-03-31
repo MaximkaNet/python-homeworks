@@ -29,10 +29,9 @@ def homework(date: date, author: str) -> None:
 
 
 def attchments(homework_id: int) -> None:
-    sql = "DELETE FROM `attachments` WHERE `homework_id` = %s"
-    val = (homework_id)
+    sql = f"DELETE FROM `attachments` WHERE `homework_id` = {homework_id}"
     try:
-        delete(sql, val)
+        delete(sql)
     except ConnectionError as err:
         logging.critical(err)
     except DBException as err:
