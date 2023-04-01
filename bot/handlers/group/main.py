@@ -91,9 +91,9 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
 
 def register_group_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(
-        __start, IsGroup() | IsSupergroup(), commands=['start'])
+        __start, IsGroup() | IsSupergroup(), commands=['start'], state="*")
     dp.register_message_handler(
-        __help, IsGroup() | IsSupergroup(), commands=['help'])
+        __help, IsGroup() | IsSupergroup(), commands=['help'], state="*")
     dp.register_message_handler(
         __homework, IsGroup() | IsSupergroup(), commands=['homework'], state="*")
 
