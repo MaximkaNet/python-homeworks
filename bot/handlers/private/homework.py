@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext, filters
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMedia, InputMediaPhoto
 
 from bot.utils.messages import HOMEWORKS_NOT_FOUND, HELP_ADD, HOMEWORK_PANEL_WELLCOME, HW_PANEL_COMMANDS, SELECT_TEACHER, TEACHERS_NOT_FOUND, HOMEWORK_PANEL_BYE, ADD_TASK, ACTION_CANCELED, HOMEWORK_EDITED, INCORRECT, HOMEWORK_UPDATE_QUESTION, HOMEWORK_ADDED, SERVICE_UNAVAILABLE, ADD_ATTACHMENTS
 from bot.callbacks.homework import show_homework_callback, actions_show_all_callback
@@ -126,8 +126,19 @@ async def __process_calendar(callback_query: types.CallbackQuery, callback_data:
 async def __show_attachments(msg: types.Message, homework_id: int) -> None:
     photos, files, animations = models.utils.homework.get_files(homework_id)
     if len(photos) != 0:
-        for item in photos:
-            await msg.answer_photo(item)
+        length: int = len(photos)
+        if length > 1:
+            chunk_size = 10
+            for start in range(0, length, chunk_size):
+                if length > 10:
+                    await msg.answer_media_group([InputMediaPhoto(item) for item in photos[start:start + 10]])
+                else:
+                    if len(photos[start:length]) > 1:
+                        await msg.answer_media_group([InputMediaPhoto(item)for item in photos[start:length]])
+                    else:
+                        await msg.answer_photo(photos[length - 1])
+        else:
+            await msg.answer_photo(photos[0])
     if len(files) != 0:
         for item in files:
             await msg.answer_document(item)
