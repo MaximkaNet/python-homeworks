@@ -75,4 +75,4 @@ class Homework:
         sections: str = ""
         for task in self.tasks:
             sections += task.print(separator)
-        return f'*{self.author}*\n{sections}\n\n_Added: {self.date.strftime(Config.DATE_FORMAT)} ({self.date.strftime("%A")})_' if self.date == self.update_date else f'*{self.author}*\n{sections}\n\n_Updated: {self.update_date.strftime(Config.DATE_FORMAT)} ({self.date.strftime("%A")})_'
+        return f'*{self.author}*\n{sections}\n\n_Added: {self.date.strftime(Config.DATE_FORMAT)} ({self.date.strftime("%A")})_' if self.date == self.update_date else f'*{self.author}*\n{sections}\n\n_Updated: {self.update_date.strftime(Config.DATE_FORMAT)} ({self.update_date.strftime("%A")})_'
