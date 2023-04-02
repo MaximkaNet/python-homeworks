@@ -1,9 +1,10 @@
 # Telegram bot for managment homeworks.
 
 ## How to install?
+Install requirements ```pip install -r requirements.txt```.
 Download branch or by means of git controll versions install on server with MySQL database.
 Next step. Configurate bot in _config.py_, set TOKEN and database configuration.
-Run **python main.py**. Enjoy ;)
+Run ```python run.py```. Enjoy ;)
 
 ## Version 1
 Added commands for work with bot. All commands/actions work on states and store data in them.
