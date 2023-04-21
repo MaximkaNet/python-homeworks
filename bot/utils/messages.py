@@ -34,19 +34,19 @@ HW_PANEL_COMMANDS = """Commands:
 /add - add a new homework
 /show - show a homework
 /showlast - show homeworks. 
-   You can write the command */showlast<count>*
+   */showlast<count>*
 /addempty - add empty homework
 /close - exit from managment panel"""
 ADD_TASK = """
 Write your homework in this format:
-_<source>: s.<page> (numbers) # something..._
+_<source>: s.<page>(numbers) # something..._
 
 You can learn more about adding a task with the command /addh
 You can /cancel this action
 """
 ADD_ATTACHMENTS = """
-How you can send me files/photos.
-Type /finish to complete the addition of homework.
+Now you can send me files/photos.
+Send /finish to complete the addition of homework.
 """
 TEACHER_PANEL_WELLCOME = "Wellcome to *teacher* managment panel."
 HOMEWORK_PANEL_WELLCOME = "Wellcome to *homework* managment panel."
@@ -65,4 +65,4 @@ INCORRECT = "Incorrect answer!"
 HOMEWORK_DELETED = "Deleted."
 
 # middlewares
-SERVICE_UNAVAILABLE = "The service is not available. Please try again later./help"
+SERVICE_UNAVAILABLE = "The service is not available. Please try again later. /help"
