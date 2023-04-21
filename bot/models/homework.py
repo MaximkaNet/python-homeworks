@@ -7,6 +7,7 @@ import bot.database.methods.insert as insert
 
 from datetime import date
 import json
+from bot.helpers.validator import validate_message
 
 
 class Homework:
@@ -60,13 +61,13 @@ class Homework:
         task_input = message.split("\n")
         # validate message
         for task_str in task_input:
-            if not models.Task.validate_message(task_str):
+            if not validate_message(task_str, ["s.", "#"]):
                 return False
         # parse strings
         self.tasks = []
         for string in task_input:
             temp = models.Task()
-            temp.string_parser(string)
+            temp.parse_string(string)
             self.tasks.append(temp)
             temp = None
         return True
