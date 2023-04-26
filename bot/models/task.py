@@ -33,7 +33,7 @@ class Task:
         parsed_source, parsed_data_vars = str_parse(str, separators)
 
         self.source = parsed_source
-        self.exercises = parsed_data_vars["#"]
+        self.sentences = parsed_data_vars["#"]
         self.exercises = parsed_data_vars["s."]
 
         return self
