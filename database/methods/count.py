@@ -1,6 +1,6 @@
-from bot.database.engine.query import aggregate
+from ..engine.query import aggregate
 
-from bot.database.engine.exception import ConnectionError, DBException
+from ..engine.exception import ConnectionError, DBException
 import logging
 
 

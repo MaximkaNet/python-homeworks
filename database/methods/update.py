@@ -1,10 +1,12 @@
-from bot.database.engine.query import delete, insert, update
-from bot.database.engine.config import DATE_FORMAT
-from .select import teacher_id
+from ..engine.query import delete, insert, update
+from ..engine.exception import ConnectionError, DBException
+
+from ..config.format import DATE_FORMAT
 
 from datetime import date
 
-from bot.database.engine.exception import ConnectionError, DBException
+from .select import teacher_id
+
 import logging
 
 

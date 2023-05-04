@@ -1,6 +1,6 @@
 import mysql.connector as connector
 
-from bot.utils.env import Config
+from ..config.connection import Connection
 
 from .exception import ConnectionError
 
@@ -8,10 +8,10 @@ from .exception import ConnectionError
 def connection() -> connector.MySQLConnection:
     try:
         con = connector.connect(
-            username=Config.USER,
-            password=Config.PASSWORD,
-            host=Config.HOST,
-            database=Config.DATABASE
+            username=Connection.USER,
+            password=Connection.PASSWORD,
+            host=Connection.HOST,
+            database=Connection.DATABASE
         )
     except connector.Error as err:
         raise ConnectionError(err)

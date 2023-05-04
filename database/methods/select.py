@@ -1,9 +1,9 @@
-from bot.database.engine.query import select
-from bot.database.engine.config import DATE_FORMAT
+from ..engine.query import select
+from ..config.format import DATE_FORMAT
 
 from datetime import date
 
-from bot.database.engine.exception import DBException, ConnectionError
+from ..engine.exception import DBException, ConnectionError
 import logging
 
 
@@ -97,7 +97,7 @@ def homework_by(author: str, date: date) -> list:
 
 
 def homework_files(id: int):
-    sql = f"SELECT `name`, `file`, `file_type` FROM `attachments` WHERE `homework_id` = {id}"
+    sql = f"SELECT `id`, `name`, `file`, `file_type` FROM `attachments` WHERE `homework_id` = {id}"
     try:
         res = select(sql)
     except ConnectionError as err:
