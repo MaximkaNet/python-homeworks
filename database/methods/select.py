@@ -8,7 +8,7 @@ import logging
 
 
 def teachers() -> list:
-    sql = "SELECT `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` ORDER BY `teachers`.`name` ASC"
+    sql = "SELECT `teachers`.`id`, `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` ORDER BY `teachers`.`name` ASC"
     try:
         res = select(sql)
     except ConnectionError as err:
@@ -22,7 +22,7 @@ def teachers() -> list:
 
 
 def teacher_by(name: str) -> list:
-    sql = f"SELECT `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` WHERE `teachers`.`name` = '{name}'"
+    sql = f"SELECT `teachers`.`id`, `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` WHERE `teachers`.`name` = '{name}'"
     try:
         res = select(sql)
     except ConnectionError as err:
