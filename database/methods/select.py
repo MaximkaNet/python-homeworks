@@ -21,6 +21,20 @@ def teachers() -> list:
         return res
 
 
+def teacher_by_id(id: int) -> list:
+    sql = f"SELECT `teachers`.`id`, `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` WHERE `teachers`.`id` = {id}"
+    try:
+        res = select(sql)
+    except ConnectionError as err:
+        logging.critical(err)
+        return []
+    except DBException as err:
+        logging.error(err)
+        return []
+    else:
+        return res
+
+
 def teacher_by(name: str) -> list:
     sql = f"SELECT `teachers`.`id`, `teachers`.`name`, `teachers_work_days`.`day` FROM `teachers` INNER JOIN `teachers_work_days` ON `teachers`.`id`=`teachers_work_days`.`teacher_id` WHERE `teachers`.`name` = '{name}'"
     try:
