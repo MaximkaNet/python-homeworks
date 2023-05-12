@@ -17,6 +17,16 @@ def teacher(name: str) -> None:
         logging.error(err)
 
 
+def teacher_by_id(id: int) -> None:
+    sql = f"DELETE FROM teachers WHERE id = {id}"
+    try:
+        delete(sql)
+    except ConnectionError as err:
+        logging.critical(err)
+    except DBException as err:
+        logging.error(err)
+
+
 def homework(date: date, author: str) -> None:
     sql = "DELETE FROM homeworks WHERE date = %s AND author_id = (SELECT `id` FROM `teachers` WHERE `name` = %s)"
     val = (date.strftime(DATE_FORMAT), author)
