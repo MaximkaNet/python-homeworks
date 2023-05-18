@@ -38,6 +38,16 @@ def homework(date: date, author: str) -> None:
         logging.error(err)
 
 
+def homework_by_id(id: int) -> None:
+    sql = f"DELETE FROM homeworks WHERE id = {id}"
+    try:
+        delete(sql)
+    except ConnectionError as err:
+        logging.critical(err)
+    except DBException as err:
+        logging.error(err)
+
+
 def attchments(homework_id: int) -> None:
     sql = f"DELETE FROM `attachments` WHERE `homework_id` = {homework_id}"
     try:

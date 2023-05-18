@@ -26,3 +26,15 @@ def homeworks() -> int:
         logging.error(err)
     else:
         return res
+
+
+def attachments(homework_id: int) -> int:
+    sql = f"SELECT COUNT(*) FROM `attachments` WHERE `homework_id` = {homework_id}"
+    try:
+        res = int(aggregate(sql)[0][0])
+    except ConnectionError as err:
+        logging.critical(err)
+    except DBException as err:
+        logging.error(err)
+    else:
+        return res
