@@ -9,7 +9,7 @@ import database.methods.select as select
 
 import logging
 from datetime import date
-from config.bot import AdminBotConfig
+from config.bot import BotConfig
 
 from uuid import uuid4
 

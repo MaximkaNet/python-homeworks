@@ -14,7 +14,7 @@ from utils.validator import validate_message
 from utils.get import get_file_path, get_file
 
 from datetime import date
-from config.bot import AdminBotConfig
+from config.bot import BotConfig
 
 
 class Homework:
@@ -75,8 +75,8 @@ class Homework:
             file_type = "document"
             file_name = msg.document.file_name
 
-        file_path = await get_file_path(AdminBotConfig.TOKEN, file_id)
-        blob = await get_file(AdminBotConfig.TOKEN, file_path=file_path)
+        file_path = await get_file_path(BotConfig.TOKEN, file_id)
+        blob = await get_file(BotConfig.TOKEN, file_path=file_path)
 
         # insert
         attachment = Attachment(None, file_name, blob, file_type)

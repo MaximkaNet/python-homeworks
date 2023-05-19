@@ -6,7 +6,7 @@ Download branch or by means of git controll versions install on server with MySQ
 ### Next step.
 Create `.env` file and add a few rows
 ```
-TOKEN=6263763068:AAGHFyAaQyYuT6BbRddWEWSn9g9DWQQV71I
+TOKEN=YOUR TOKEN
 HOST=YOUR HOST
 USER=DATABASE USER
 PASSWORD=DATABASE PASSWAORD
@@ -37,7 +37,7 @@ Run ```python run.py```. Enjoy ;)
   #### _Homework_:
   - `/newhw` - add new
 
-  /about - about project
+  `/about` - about project
   ### In group/supergroup chat
   - `/tomorrow` - show tomorrow homework
   - `/anotherdate` - show homework for other date using callendar
