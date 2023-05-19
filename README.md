@@ -3,32 +3,42 @@
 ## How to install?
 Install requirements ```pip install -r requirements.txt```.
 Download branch or by means of git controll versions install on server with MySQL database.
-Next step. Configurate bot in _bot/utils/env.py_, set TOKEN and database configuration.
+### Next step.
+Create `.env` file and add a few rows
+```
+TOKEN=6263763068:AAGHFyAaQyYuT6BbRddWEWSn9g9DWQQV71I
+HOST=YOUR HOST
+USER=DATABASE USER
+PASSWORD=DATABASE PASSWAORD
+DATABASE=DATABASE NAME
+PROXY=None
+``` 
+`PROXY` will be `None` if you start bot in local machine. You can leave this field blank.
 Run ```python run.py```. Enjoy ;)
 
-## Version 1.1
-Restructuring bot.
-Added attachments to homeworks support.
-New command /addempty for adding empty homework if no homework has been given.
+## Version 1.2
+*Remove* homework and teacher workspaces. 
 
 
 ## Allowed commands
   ### In private chat
-  - /start, /help - show commands information
-  - /addh - help with adding homeworks
-  - /homework - open homework workspace (commands for work with homework)
-    * /help - allowed commands for workspace
-    * /show - print a homework by date (tomorrow or another date)
-    * /add - add a new homework
-    * /showlast(count_homeworks) - print last homeworks. count_homeworks: default 2
-    * /addempty - add empty homework
-    * /close - close workspace
-  - /teacher - open teacher workspace (commands for work with teacher)
-    * /help - show allowed commands for workspace
-    * /add - add a new teacher
-    * /show - show *all* teachers
-    * /changename - change name for selected teacher
-    * /close - close workspace
+  *--- Show ---*
+  #### _Homework_:
+  - `/tomorrow` - show tomorrow homework
+  - `/anotherdate` - show homework for other date using callendar
+  #### _More items_:
+  - `/hws` - print list homeworks
+  - `/teachers` - show list teachers
+
+  *--- Add ---*
+  #### _Teacher_:
+  - `/newteacher` - add new teacher
+
+  #### _Homework_:
+  - `/newhw` - add new
+
+  /about - about project
   ### In group/supergroup chat
-  - /start, /help - show commands information
-  - /homework - print a homework by date (tomorrow ar another date) 
+  - `/tomorrow` - show tomorrow homework
+  - `/anotherdate` - show homework for other date using callendar
+  - `/about` - about project
