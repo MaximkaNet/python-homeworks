@@ -1,31 +1,26 @@
-import datetime
-
-LOG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-
-def convert_week(days: list[int]) -> list[str]:
-    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    week = []
-    days.sort()
-    for item in days:
-        week.append(day_names[item])
-    return week
+from datetime import date
+from config.formats import DATE_FORMAT
 
 
-def trim(str: str) -> str:
-    word_list = str.split(" ")
-    res = ""
-    size = len(word_list)
-    for i, word in enumerate(word_list):
-        if word != "":
-            res += word
-            if i < size - 1:
-                res += " "
-    res = res.strip()
-    return res
+def show_selected_wrapper(_body: str, _date: date) -> str:
+    WRAPP = f"""
+    {_body}
+_Selected date: {_date.strftime("%A")} ({_date.strftime(DATE_FORMAT)})_
+    """
+    return WRAPP
 
 
-def log(message: str, user: str):
-    now = datetime.datetime.now()
-    log_text = f"[{now.strftime(LOG_DATETIME_FORMAT)}] '{user}': {message}"
-    print(log_text)
+def show_add_wrapper(_body: str, _date: date) -> str:
+    WRAPP = f"""
+    {_body}
+_Added: {_date.strftime("%A")} ({_date.strftime(DATE_FORMAT)})_
+    """
+    return WRAPP
+
+
+def show_updated_wrapper(_body: str, _date: date) -> str:
+    WRAPP = f"""
+    {_body}
+_Updated at: {_date.strftime("%A")} ({_date.strftime(DATE_FORMAT)})_
+    """
+    return WRAPP

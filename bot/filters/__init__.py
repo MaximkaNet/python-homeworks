@@ -1,1 +1,2 @@
-from .main import IsPrivate, IsGroup, IsSupergroup, IsChannel
+from .private import IsPrivate
+from .public import IsPublic
