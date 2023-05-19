@@ -1,7 +1,8 @@
 from .task import Task
 from .attachment import Attachment
+from .teacher import Teacher
 
-from aiogram.types import Message, InputMediaPhoto
+from aiogram.types import Message, InputMediaPhoto, InputMedia
 from uuid import uuid4
 
 from database.methods import update
@@ -22,14 +23,14 @@ class Homework:
             id: int = None,
             createdAt: date = None,
             updatedAt: date = None,
-            author: str = "",
-            tasks: list[Task] = [],
-            attachments: list[Attachment] = []
+            teacher: Teacher = None,
+            tasks: list[Task] = None,
+            attachments: list[Attachment] = None
     ) -> None:
         self.id: int = id
         self.createdAt: date = createdAt
         self.updatedAt: date = createdAt if updatedAt == None else updatedAt
-        self.author: str = author
+        self.teacher: Teacher = teacher
         self.tasks: list[Task] = tasks
         self.attachments: list[Attachment] = attachments
 
@@ -89,7 +90,7 @@ class Homework:
         sections: str = ""
         for task in self.tasks:
             sections += task.print(separator)
-        body = f"*{self.author}*\n{sections}\n"
+        body = f"*{self.teacher}*\n{sections}\n"
         if count_attachments == 0:
             return body
         elif count_attachments > 0:
@@ -111,12 +112,12 @@ class Homework:
             else:
                 await msg.answer_document(attachment.get_input_file())
             return
-        photos: list[Attachment] = filter(
-            lambda item: item.type == "photo", self.attachments)
-        animations: list[Attachment] = filter(
-            lambda item: item.type == "animation", self.attachments)
-        documents: list[Attachment] = filter(
-            lambda item: item.type == "document", self.attachments)
+        photos: list[Attachment] = list(filter(
+            lambda item: item.type == "photo", self.attachments))
+        animations: list[Attachment] = list(filter(
+            lambda item: item.type == "animation", self.attachments))
+        documents: list[Attachment] = list(filter(
+            lambda item: item.type == "document", self.attachments))
 
         # group photos
         if len(photos) == 1:
@@ -128,46 +129,22 @@ class Homework:
                     chunk_size = 10
                     for start in range(0, length, chunk_size):
                         if length > 10:
-                            await msg.answer_media_group([InputMediaPhoto(item) for item in photos[start:start + 10]])
+                            await msg.answer_media_group([InputMediaPhoto(item.get_input_file()) for item in photos[start:start + 10]])
                         else:
                             if len(photos[start:length]) > 1:
-                                await msg.answer_media_group([InputMediaPhoto(item)for item in photos[start:length]])
+                                await msg.answer_media_group([InputMediaPhoto(item.get_input_file())for item in photos[start:length]])
                             else:
-                                await msg.answer_photo(photos[length - 1])
+                                await msg.answer_photo(photos[length - 1].get_input_file())
                 else:
-                    await msg.answer_photo(photos[0])
+                    await msg.answer_photo(photos[0].get_input_file())
             if len(documents) != 0:
                 for item in documents:
-                    await msg.answer_document(item)
+                    await msg.answer_document(item.get_input_file())
             if len(animations) != 0:
                 for item in animations:
-                    await msg.answer_animation(item)
+                    await msg.answer_animation(item.get_input_file())
 
-        # def update(
-        #     self,
-        #     tasks: list = None
-        # ) -> None:
-        #     if tasks != None:
-        #         self.tasks = tasks
-        #     self.updatedAt = date.today()
-        #     update.homework_by(self.author, self.createdAt, self.updatedAt)
-        #     homework_id = select.homework_id(self.author, self.createdAt)
-        #     delete.tasks_by(homework_id)
-        #     for task in self.tasks:
-        #         insert.task(task.source, json.dumps(
-        #             task.exercises), json.dumps(task.sentences), homework_id)
-
-        # def add_attachment(self, name: str, blob, type: str = "photo") -> None:
-        #     homework_id = select.homework_id(self.author, self.createdAt)
-        #     insert.homework_file(name, blob, type, homework_id)
-
-        # def delete_attachment(self, name: str = "", date: date = None):
-        #     if name != "" and date != None:
-        #         delete.attchments(select.homework_id(name, date))
-        #     else:
-        #         delete.attchments(select.homework_id(self.author, self.createdAt))
-
-        # convert task list to unparsed type
+    # convert task list to unparsed type
 
     def convert_tasks(self) -> str:
         res = ""
@@ -200,6 +177,6 @@ class Homework:
     def is_empty(
         self
     ) -> bool:
-        if self.author != "" and len(self.tasks) != 0:
+        if self.teacher != "" and len(self.tasks) != 0:
             return True
         return False

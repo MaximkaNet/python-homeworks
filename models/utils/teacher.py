@@ -11,18 +11,18 @@ from .. import Teacher
 choice_teacher_callback = CallbackData("ch_teacher", "id")
 
 
-def to_teacher(tuples: list[tuple]) -> list[Teacher] | None:
-    if len(tuples) == 0:
+def to_teacher(objs: list[dict] | None) -> list[Teacher] | None:
+    if objs == None:
         return None
     teachers: list[Teacher] = []
 
-    selected_id = ""
-    for item in tuples:
-        id = item[0]
-        name = item[1]
-        surname = item[2]
-        position = item[3]
-        day = item[4]
+    selected_id = None
+    for teacher in objs:
+        id = teacher['id']
+        name = teacher['name']
+        surname = teacher['surname']
+        position = teacher['position']
+        day = teacher['day']
 
         if id == selected_id:
             teachers[-1].work_days.add(day)
@@ -41,7 +41,7 @@ def to_teacher(tuples: list[tuple]) -> list[Teacher] | None:
 
 def gen_table() -> InlineKeyboardMarkup:
     items = to_teacher(teachers())
-    if len(items) == 0:
+    if items == None:
         logging.debug("Items not found")
         return None
     count_cols = round(math.sqrt(len(items)))

@@ -6,8 +6,10 @@ from datetime import date
 from ..engine.exception import DBException, ConnectionError
 import logging
 
+from ..helpers.to_dict import to_dict
 
-def teachers() -> list:
+
+def teachers() -> list[dict] | None:
     """
     Return: [
         {
@@ -32,7 +34,9 @@ def teachers() -> list:
     ORDER BY `teachers`.`name` ASC
     """
     try:
-        res = select(sql)
+        rows = select(sql)
+        schema = ['id', 'name', 'surname', 'position', 'day']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -43,7 +47,7 @@ def teachers() -> list:
         return res
 
 
-def teacher_by_id(id: int) -> list:
+def teacher_by_id(id: int) -> list[dict] | None:
     """
     Return: [
         {
@@ -68,7 +72,9 @@ def teacher_by_id(id: int) -> list:
     WHERE `teachers`.`id` = {id}
     """
     try:
-        res = select(sql)
+        rows = select(sql)
+        schema = ['id', 'name', 'surname', 'position', 'day']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -105,14 +111,17 @@ def teacher_by_id(id: int) -> list:
 #         return res
 
 
-def homeworks(limit: int = 10, offset: int = 0) -> list:
+def homeworks(limit: int = 10, offset: int = 0) -> list[dict] | None:
     """
     Return: [
         {
             `id`,
             `created_at`,
             `updated_at`,
-            `teacher_name`
+            `teacher_id`,
+            `teacher_name`,
+            `teacher_surname`,
+            `teacher_position`
         }
     ]
     """
@@ -122,7 +131,10 @@ def homeworks(limit: int = 10, offset: int = 0) -> list:
         `homeworks`.`id`,
         `homeworks`.`created_at`,
         `homeworks`.`updated_at`,
-        `teachers`.`name`
+        `teachers`.`id`,
+        `teachers`.`name`,
+        `teachers`.`surname`,
+        `teachers`.`position`
     FROM `homeworks` INNER JOIN `teachers`
         ON `homeworks`.`teacher_id` = `teachers`.`id`
     ORDER BY `homeworks`.`created_at` DESC
@@ -131,7 +143,12 @@ def homeworks(limit: int = 10, offset: int = 0) -> list:
     """
     val = (limit, offset)
     try:
-        res = select(sql, val)
+        rows = select(sql, val)
+        schema = [
+            'id', 'created_at', 'updated_at',
+            'teacher_id', 'teacher_name',
+            'teacher_surname', 'teacher_position']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -142,14 +159,17 @@ def homeworks(limit: int = 10, offset: int = 0) -> list:
         return res
 
 
-def homework_last_by(teacher_id: str, date: date, limit: int = 1) -> list:
+def homework_last_by(teacher_id: str, date: date, limit: int = 1) -> list[dict] | None:
     """
     Return: [
         {
             `id`,
             `created_at`,
             `updated_at`,
-            `teacher_name`
+            `teacher_id`,
+            `teacher_name`,
+            `teacher_surname`,
+            `teacher_position`
         }
     ]
     """
@@ -159,7 +179,10 @@ def homework_last_by(teacher_id: str, date: date, limit: int = 1) -> list:
         `homeworks`.`id`,
         `homeworks`.`created_at`,
         `homeworks`.`updated_at`,
-        `teachers`.`name`
+        `teachers`.`id`,
+        `teachers`.`name`,
+        `teachers`.`surname`,
+        `teachers`.`position`
     FROM `homeworks` INNER JOIN `teachers`
         ON `homeworks`.`teacher_id` = `teachers`.`id`
     WHERE `teachers`.`id` = %s AND `homeworks`.`created_at` < %s
@@ -168,7 +191,12 @@ def homework_last_by(teacher_id: str, date: date, limit: int = 1) -> list:
     """
     val = (teacher_id, date.strftime(DATE_FORMAT), limit)
     try:
-        res = select(sql, val)
+        rows = select(sql, val)
+        schema = [
+            'id', 'created_at', 'updated_at',
+            'teacher_id', 'teacher_name',
+            'teacher_surname', 'teacher_position']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -179,14 +207,17 @@ def homework_last_by(teacher_id: str, date: date, limit: int = 1) -> list:
         return res
 
 
-def homework_by(teacher_id: str, date: date) -> list:
+def homework_by(teacher_id: str, date: date) -> list[dict] | None:
     """
     Return: [
         {
             `id`,
-            `file_name`,
-            `file_type`,
-            `file_blob`
+            `created_at`,
+            `updated_at`,
+            `teacher_id`,
+            `teacher_name`,
+            `teacher_surname`,
+            `teacher_position`
         }
     ]
     """
@@ -196,7 +227,10 @@ def homework_by(teacher_id: str, date: date) -> list:
         `homeworks`.`id`,
         `homeworks`.`created_at`,
         `homeworks`.`updated_at`,
-        `teachers`.`name`
+        `teachers`.`id`,
+        `teachers`.`name`,
+        `teachers`.`surname`,
+        `teachers`.`position`
     FROM `homeworks` INNER JOIN `teachers`
         ON `homeworks`.`teacher_id` = `teachers`.`id`
     WHERE `teacher_id` = %s AND `created_at` = %s
@@ -204,7 +238,12 @@ def homework_by(teacher_id: str, date: date) -> list:
 
     val = (teacher_id, date.strftime(DATE_FORMAT))
     try:
-        res = select(sql, val)
+        rows = select(sql, val)
+        schema = [
+            'id', 'created_at', 'updated_at',
+            'teacher_id', 'teacher_name',
+            'teacher_surname', 'teacher_position']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -215,7 +254,53 @@ def homework_by(teacher_id: str, date: date) -> list:
         return res
 
 
-def homework_files(id: int):
+def homework_by_id(id: int) -> list[dict] | None:
+    """
+    Return: [
+        {
+            `id`,
+            `created_at`,
+            `updated_at`,
+            `teacher_id`,
+            `teacher_name`,
+            `teacher_surname`,
+            `teacher_position`
+        }
+    ]
+    """
+
+    sql = f"""
+    SELECT
+        `homeworks`.`id`,
+        `homeworks`.`created_at`,
+        `homeworks`.`updated_at`,
+        `teachers`.`id`,
+        `teachers`.`name`,
+        `teachers`.`surname`,
+        `teachers`.`position`
+    FROM `homeworks` INNER JOIN `teachers`
+        ON `homeworks`.`teacher_id` = `teachers`.`id`
+    WHERE `homeworks`.`id` = {id}
+    """
+
+    try:
+        rows = select(sql)
+        schema = [
+            'id', 'created_at', 'updated_at',
+            'teacher_id', 'teacher_name',
+            'teacher_surname', 'teacher_position']
+        res = to_dict(tuples=rows, schema=schema)
+    except ConnectionError as err:
+        logging.critical(err)
+        return None
+    except DBException as err:
+        logging.error(err)
+        return None
+    else:
+        return res
+
+
+def homework_files(homework_id: int) -> list[dict] | None:
     """
     Return: [
         {
@@ -234,10 +319,14 @@ def homework_files(id: int):
         `file_type`,
         `file_blob`
     FROM `attachments`
-    WHERE `homework_id` = {id}
+    WHERE `homework_id` = {homework_id}
     """
     try:
-        res = select(sql)
+        rows = select(sql)
+        schema = [
+            'id', 'file_name', 'file_type',
+            'file_blob']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None
@@ -248,34 +337,7 @@ def homework_files(id: int):
         return res
 
 
-# def homework_id(author: str, date: date) -> int:
-#     """
-#     Return: [
-#         {
-#             `id`
-#         }
-#     ]
-#     """
-
-#     sql = """
-#     SELECT
-#         `homeworks`.`id`
-#     FROM `homeworks` INNER JOIN `teachers`
-#     ON `homeworks`.`author_id` = `teachers`.`id`
-#     WHERE `homeworks`.`date` = %s AND `teachers`.`name` = %s
-#     """
-#     val = (date.strftime(DATE_FORMAT), author)
-#     try:
-#         res = select(sql, val)[0][0]
-#     except ConnectionError as err:
-#         logging.critical(err)
-#     except DBException as err:
-#         logging.error(err)
-#     else:
-#         return res
-
-
-def tasks(homework_id: int) -> list:
+def tasks(homework_id: int) -> list[dict] | None:
     """
     Return: [
         {
@@ -295,7 +357,9 @@ def tasks(homework_id: int) -> list:
     WHERE `homework_id` = {homework_id}
     """
     try:
-        res = select(sql)
+        rows = select(sql)
+        schema = ['source', 'exercises', 'sentences']
+        res = to_dict(tuples=rows, schema=schema)
     except ConnectionError as err:
         logging.critical(err)
         return None

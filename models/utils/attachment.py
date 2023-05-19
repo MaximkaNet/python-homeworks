@@ -1,15 +1,16 @@
 from .. import Attachment
 
 
-def to_attachment(tuples: list[tuple]) -> list[Attachment] | None:
-    if len(tuples) == 0:
+def to_attachment(objs: list[dict] | None) -> list[Attachment] | None:
+    if objs == None:
         return None
+
     attachments: list[Attachment] = []
-    for item in tuples:
-        id = item[0]
-        name = item[1]
-        file_type = item[2]
-        file = item[3]
+    for attachment in objs:
+        id = attachment['id']
+        name = attachment['file_name']
+        file_type = attachment['file_type']
+        file = attachment['file_blob']
         attachments.append(Attachment(id=id,
                                       name=name,
                                       blob=file,

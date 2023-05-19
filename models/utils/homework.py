@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from models import Homework, Attachment
+from models import Homework, Attachment, Teacher
 from models.utils import task, teacher
 
 from utils.get import get_file_path, get_file
@@ -16,17 +16,23 @@ from uuid import uuid4
 from models.utils import attachment
 
 
-def to_homework(tuples: list[tuple]) -> list[Homework] | None:
-    if len(tuples) == 0:
+def to_homework(objs: list[dict] | None) -> list[Homework] | None:
+    if objs == None:
         return None
+
     homeworks: list[Homework] = []
-    for item in tuples:
-        tasks = task.to_task(select.tasks(item[0]))
+    for homework in objs:
+        tasks = task.to_task(select.tasks(homework['id']))
+
         homeworks.append(Homework(
-            id=item[0],
-            createdAt=item[1],
-            updatedAt=item[2],
-            author=item[3],
+            id=homework['id'],
+            createdAt=homework['created_at'],
+            updatedAt=homework['updated_at'],
+            teacher=Teacher(
+                id=homework['teacher_id'],
+                name=homework['teacher_name'],
+                surname=homework['teacher_surname'],
+                position=homework['teacher_position']),
             tasks=tasks))
 
     return homeworks
@@ -74,7 +80,7 @@ def get_last_by_date(date: date) -> list[Homework]:
             f"Homeworks for {date.strftime('%Y-%m-%d')} is not found")
         return None
 
-    return show_list
+    return show_list if len(show_list) > 0 else None
 
 
 # def get_by(name: str, date: date) -> Homework:
