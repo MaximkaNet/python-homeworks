@@ -1,2 +1,2 @@
 from .teacher import register_show_teacher_handlers
-from .homework import register_supergroup_handlers
+from .homework import register_show_homework_handlers

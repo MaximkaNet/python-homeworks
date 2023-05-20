@@ -241,7 +241,7 @@ async def __process_list_actions(callback_query: CallbackQuery, callback_data: C
             await __template_show(callback_query.message, homeworks[0])
 
 
-def register_supergroup_handlers(dp: Dispatcher) -> None:
+def register_show_homework_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(
         __tomorrow, commands=['tomorrow'], state="*")
 
