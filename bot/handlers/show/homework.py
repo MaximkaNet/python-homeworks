@@ -68,7 +68,6 @@ async def __tomorrow(msg: Message, state: FSMContext) -> None:
     """
     await state.reset_state(with_data=False)
     selected_date: date = date.today() + timedelta(days=1)
-    await msg.delete()
 
     # loading...
     LOADING_MSG = "*Loading...*"
@@ -96,7 +95,13 @@ async def __last_by_teacher(msg: Message) -> None:
 
 async def __another_date(msg: Message, state: FSMContext) -> None:
     await state.reset_state(with_data=False)
-    await msg.delete()
+
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     await msg.answer("Select date:", reply_markup=await DialogCalendar().start_calendar())
 
 
@@ -109,7 +114,7 @@ async def __process_calendar(callback_query: CallbackQuery,
 
         # loading...
         LOADING_MSG = "*Loading...*"
-        wrapp_msg = await callback_query.message.answer(show_selected_wrapper(LOADING_MSG, selected_date))
+        wrapp_msg = await callback_query.message.edit_text(show_selected_wrapper(LOADING_MSG, selected_date))
 
         # check connection
         conn_msg, access = await check_connection()
@@ -131,12 +136,6 @@ async def __show_page(msg: Message, page: int = 1, limit: int = 5):
     # loading...
     LOADING_MSG = "*Loading...*"
     wrapp_msg = await msg.answer(LOADING_MSG)
-
-    # check connection
-    conn_msg, access = await check_connection()
-    if not access:
-        await wrapp_msg.edit_text(conn_msg)
-        return
 
     # find homeworks
     show_list: list[Homework] = to_homework(
@@ -192,6 +191,12 @@ async def __infinity_list(msg: Message, state: FSMContext) -> None:
     page = 1
     limit = 2
 
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     # page
     await __show_page(msg, page, limit)
 
@@ -203,6 +208,13 @@ async def __infinity_list(msg: Message, state: FSMContext) -> None:
 async def __process_infinity_list(callback_query: CallbackQuery, callback_data: CallbackData) -> None:
     page = int(callback_data["page"])
     limit = 2
+
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await callback_query.message.answer(conn_msg)
+        return
+
     # show page counter
     await callback_query.message.edit_text(f"Page: {page}")
 

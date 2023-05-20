@@ -15,12 +15,19 @@ from .state.teacher import TeacherState
 from utils.selectweekdays import SelectWeekDays, week_days_callback
 
 from ...filters import IsPrivate
+from ...middlewares.check_connection_middleware import check_connection
 
 
 async def __add(msg: Message, state: FSMContext):
     """
     Add new teacher
     """
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     await state.reset_state(with_data=False)
     await msg.answer(ADD_TEACHER)
     await TeacherState.name.set()
@@ -55,10 +62,22 @@ async def __process_days(callback_query: CallbackQuery, callback_data: CallbackD
 
 
 async def __set_name(msg: Message, state: FSMContext) -> None:
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     await msg.answer(SERVICE_UNAVAILABLE)
 
 
 async def __set_work_days(msg: Message, state: FSMContext) -> None:
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     await msg.answer(SERVICE_UNAVAILABLE)
 
 

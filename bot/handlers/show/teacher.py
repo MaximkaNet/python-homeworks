@@ -8,6 +8,8 @@ from database.methods import delete
 from models.utils.teacher import to_teacher
 from models.teacher import Teacher
 
+from ...middlewares.check_connection_middleware import check_connection
+
 from ...utils.messages import TEACHERS_NOT_FOUND
 
 from .helpers import edit_delete_ikb, edit_delete_callback
@@ -17,6 +19,12 @@ from ...filters import IsPrivate
 
 async def __all(msg: Message, state: FSMContext):
     await state.reset_state(with_data=False)
+
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
 
     show_list: list[Teacher] = to_teacher(teachers())
 

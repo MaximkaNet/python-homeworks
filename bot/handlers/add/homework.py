@@ -20,6 +20,7 @@ from database.methods import select
 from datetime import date
 
 from ...filters import IsPrivate
+from ...middlewares.check_connection_middleware import check_connection
 
 
 async def __new(msg: Message, state: FSMContext):
@@ -27,6 +28,13 @@ async def __new(msg: Message, state: FSMContext):
     Select a teacher for homework
     """
     await state.reset_state(with_data=False)
+
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await msg.answer(conn_msg)
+        return
+
     await state.set_data({"homework": None, "main_msg": None})
     teachers_table = gen_table()
     if teachers_table != None:

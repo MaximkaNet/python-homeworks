@@ -19,11 +19,10 @@ def select(sql: str, val: tuple = None) -> list:
     except ConnectionError as connErr:
         raise connErr
     else:
-        return records
-    finally:
-        if con and con.is_connected():
+        if con.is_connected():
             cursor.close()
             con.close()
+        return records
 
 
 def insert(sql: str, val: tuple | list[tuple] = None) -> int:
@@ -45,11 +44,10 @@ def insert(sql: str, val: tuple | list[tuple] = None) -> int:
     except ConnectionError as connErr:
         raise connErr
     else:
-        return cursor.lastrowid
-    finally:
-        if con and con.is_connected():
+        if con.is_connected():
             cursor.close()
             con.close()
+        return cursor.lastrowid
 
 
 def update(sql: str, val: tuple = None) -> None:
@@ -65,8 +63,8 @@ def update(sql: str, val: tuple = None) -> None:
         raise UpdateError(err)
     except ConnectionError as connErr:
         raise connErr
-    finally:
-        if con and con.is_connected():
+    else:
+        if con.is_connected():
             cursor.close()
             con.close()
 
@@ -84,8 +82,8 @@ def delete(sql: str, val: tuple = None) -> None:
         raise DeleteError(err)
     except ConnectionError as connErr:
         raise connErr
-    finally:
-        if con and con.is_connected():
+    else:
+        if con.is_connected():
             cursor.close()
             con.close()
 
@@ -98,13 +96,13 @@ def aggregate(sql, val: tuple = None) -> list:
         # ----
         cursor = con.cursor()
         cursor.execute(sql, val)
+        res = cursor.fetchall()
     except connector.Error as err:
         raise AggregateError(err)
     except ConnectionError as connErr:
         raise connErr
     else:
-        return cursor.fetchall()
-    finally:
-        if con and con.is_connected():
+        if con.is_connected():
             cursor.close()
             con.close()
+        return res

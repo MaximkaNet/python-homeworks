@@ -41,6 +41,10 @@ class Homework:
     ) -> None:
         self.createdAt = _date
         self.updatedAt = _date
+
+        if self.tasks == None:
+            raise Exception("Tasks is not found.")
+
         # insert homework node
         self.id = insert.homework(
             created_at=self.createdAt,
@@ -51,9 +55,9 @@ class Homework:
         for task in self.tasks:
             task.insert(self.id)
 
-        # insert attachments
-        for attachment in self.attachments:
-            attachment.insert(self.id)
+        # # insert attachments
+        # for attachment in self.attachments:
+        #     attachment.insert(self.id)
 
     async def add_attachment(
         self,
