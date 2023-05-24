@@ -16,8 +16,8 @@ PROXY=None
 `PROXY` will be `None` if you start bot in local machine. You can leave this field blank.
 Run ```python run.py```. Enjoy ;)
 
-## Version 1.2
-*Remove* homework and teacher workspaces. 
+## Version 1.2.1
+Add new command `/today`
 
 
 ## Allowed commands
@@ -26,6 +26,7 @@ Run ```python run.py```. Enjoy ;)
   #### _Homework_:
   - `/tomorrow` - show tomorrow homework
   - `/anotherdate` - show homework for other date using callendar
+  - `/today` - show today homework
   #### _More items_:
   - `/hws` - print list homeworks
   - `/teachers` - show list teachers

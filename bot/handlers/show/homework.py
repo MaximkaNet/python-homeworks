@@ -93,6 +93,33 @@ async def __last_by_teacher(msg: Message) -> None:
     pass
 
 
+async def __today(msg: Message, state: FSMContext) -> None:
+    """
+    Get homeworks
+    """
+    await state.reset_state(with_data=False)
+    selected_date: date = date.today()
+
+    # loading...
+    LOADING_MSG = "*Loading...*"
+    wrapp_msg = await msg.answer(show_selected_wrapper(LOADING_MSG, selected_date))
+
+    # check connection
+    conn_msg, access = await check_connection()
+    if not access:
+        await wrapp_msg.edit_text(conn_msg)
+        return
+
+    # find homeworks
+    show_list: list[Homework] = get_last_by_date(selected_date)
+    if show_list == None:
+        await wrapp_msg.edit_text(show_selected_wrapper(HOMEWORKS_NOT_FOUND, selected_date))
+        return
+
+    # print results
+    await __template_show(wrapp_msg, show_list, selected_date=selected_date)
+
+
 async def __another_date(msg: Message, state: FSMContext) -> None:
     await state.reset_state(with_data=False)
 
@@ -244,6 +271,9 @@ async def __process_list_actions(callback_query: CallbackQuery, callback_data: C
 def register_show_homework_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(
         __tomorrow, commands=['tomorrow'], state="*")
+
+    dp.register_message_handler(
+        __today, commands=['today'], state="*")
 
     dp.register_message_handler(
         __last_by_teacher, commands=['lastbyteacher'], state="*")

@@ -9,6 +9,7 @@ Available commands:
 
 /tomorrow - show tomorrow homework
 /anotherdate - show homework for other date using callendar
+/today - show today homework
 
 /about - about project
 """
@@ -20,6 +21,7 @@ Available commands for homework:
 _Homework_:
 /tomorrow - show tomorrow homework
 /anotherdate - show homework for other date using callendar
+/today - show today homework
 
 /hws - print list homeworks
 /teachers - show list teachers
